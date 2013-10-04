@@ -1,15 +1,15 @@
 #! /usr/bin/env perl
 
-# # Preamble
+# # # Preamble
 use strict; use warnings; use feature 'say'; use Getopt::Long; use Data::Dumper;
 use List::Util 'first'; #Finds first match in an array
 use DFEdataset;
 
-# # Globar vars
+# # # Globar vars
 my $help = undef;
 my $inputFile;
 
-# # Subroutines
+# # # Main
 usage() if (
     @ARGV < 1 or
     !GetOptions(
@@ -17,85 +17,133 @@ usage() if (
     'input=s'   =>  \$inputFile,
     ) or defined $help);
 
+my $inputFile_fh_ref = openInput($inputFile);
+my $inputFile_fh = $$inputFile_fh_ref;
+
+my $outputFile_fh_ref = openOutput($inputFile);
+my $outputFile_fh = $$outputFile_fh_ref;
+
+my $file_aref = readFile($inputFile_fh);
+my @file = @{ $file_aref };
+
+my ($fileName, $chr, $chr_state, $winStart, $winEnd, $headersSep_ref, $numDatasets) = parseInitialData($inputFile_fh, \@file);
+my @headersSep = @{ $headersSep_ref };
+
+
+#   
+#   # Create objects
+#   my $listOfObjects = createDatasetObjects();
+#   foreach (@{ $listOfObjects }) {
+#       say "Dataset " . $_->datasetNumber;
+#       say "\tparentFilename " . $_->parentFilename;
+#       say "\tChromosome " . $_->chromosome;
+#       say "\tchr_state " . $_->chr_state;
+#       say "\tparentWinRange " . $_->parentWinRange;
+#   
+#   }
+
+
+#   
+#   
+#   # Parse & filter param estimates
+#   #my @paramEstimates;
+#   my %hashParams;
+#   for (my $i=6; $i < 6+$numDatasets; $i++ ) { #Param estimates are lines from [6] to [numdatasets-1]
+#       #push @paramEstimates, $cleanFile[$i];
+#       $hashParams{"$i"} = $cleanFile[$i];
+#   
+#   }
+#   
+#   
+
+
+
+
+# # Subroutines
 sub usage {say "Usage: $0 -input <input file> [-help]"};
 
-# # Main
-open (my $inputFile_fh, "<", "$inputFile") or die "Couldn't open $inputFile $!";
-my $outputFile = $inputFile . "_processed";
-open (my $outputFile_fh, ">", "$outputFile") or die "Couldn't open $inputFile $!";
+sub openInput {
+    my $inputFile = shift;
+    open (my $inputFile_fh, "<", "$inputFile") or die "Couldn't open $inputFile $!";
+    return (\$inputFile_fh);
+}
 
-# Read whole file
-my @file = <$inputFile_fh>;
+sub openOutput {
+    #my $outputFile = (shift (@_)) . "_processed";
+    my $outputFile = shift;
+    $outputFile = $outputFile . "_processed";
+    open (my $outputFile_fh, ">", "$outputFile") or die "Couldn't open $outputFile $!";
+    return (\$outputFile_fh);
+}
 
-#Clean the array from empty/void values
-my @cleanFile;
-foreach (@file) {
-    if( ( defined $_) and !($_ =~ /^$/ ) and !($_ =~ /^\R$/) ) { #Select defined values, discard those void or having only a newline char (\R)
-        push(@cleanFile, $_);
+sub readFile {
+    my $inputfile_fh = shift;
+    my @file;
+    while (my $line = <$inputFile_fh>) {
+        push @file, $line;
     }
-}
-chomp(@cleanFile);
-
-# Parse filename
-my $fileName = $file[0];
-$fileName = $1 if $fileName =~ /file (.*) emailed/;
-
-# Parse chr, xfold and chr_state
-my ($chr, $chr_state, $winStart, $winEnd) = ($1, $2, $3, $4) if $fileName =~ /^(\w+)_(\w)_output_(\d+)-(\d+)/;
-say "chr $chr, chr_state $chr_state, winStart $winStart, winEnd $winEnd";
-
-# Parse $ filter headers (N1 N2 t2 f0, etc ... )
-my @headers = $cleanFile[5];
-my @headersSep;
-foreach (@headers) {
-    @headersSep = split " ";
-}
-
-#Read No. of data sets
-my $numDatasets = first { /No. data sets \d+/ } @cleanFile; #Store line
-$numDatasets = $1 if ( $numDatasets =~ /No. data sets (\d+)/ ); #Keep just the number of datasets
-#say "numDatasets <$numDatasets>";
-
-
-
-my $listOfObjects = createDatasetObjects();
-foreach (@{ $listOfObjects }) {
-    say "Dataset " . $_->datasetNumber;
-    say "\tparentFilename " . $_->parentFilename;
-    say "\tChromosome " . $_->chromosome;
-    say "\tchr_state " . $_->chr_state;
-    say "\tparentWinRange " . $_->parentWinRange;
-
-}
-#say "listofobjects<$_>" foreach (@{ $listOfObjects });
-
-sub createDatasetObjects {
-    my @listOfObjects;
-    foreach (1 .. $numDatasets) {
-        #say "<$_>";
-        my $objectName = "dataset_$_";
-        #say "\$objectName <$objectName>";
-        my $objectname = DFEdataset->new (
-            parentFilename => "$fileName",
-            chromosome => "$chr",
-            chr_state => "$chr_state",
-            parentWinRange => "$winStart-$winEnd",
-            datasetNumber => "$_",
-            );
-        push @listOfObjects, $objectname;
+    #Clean the array from empty/void values
+    my @cleanFile;
+    foreach (@file) {
+        if( ( defined $_) and !($_ =~ /^$/ ) and !($_ =~ /^\R$/) ) { #Select defined values, discard those void or having only a newline char (\R)
+            push(@cleanFile, $_);
+        }
     }
-    return (\@listOfObjects)
+    return (\@cleanFile);
 }
 
+sub parseInitialData {
+    my $inputFile_fh = shift;
+    my $file_arr_ref = shift;
+    my @file = @$file_arr_ref;
+    #say "\$inputFile_fh es < " . $inputFile_fh . " >";
+    #say "\@file";
+    #foreach (@file) {say "<$_>"};
 
-# Parse & filter param estimates
-#my @paramEstimates;
-my %hashParams;
-for (my $i=6; $i < 6+$numDatasets; $i++ ) { #Param estimates are lines from [6] to [numdatasets-1]
-    #push @paramEstimates, $cleanFile[$i];
-    $hashParams{"$i"} = $cleanFile[$i];
+    # Parse filename
+    my $fileName = $file[0];
+    $fileName = $1 if $fileName =~ /file (.*) emailed/;
 
+    # Parse chr, xfold and chr_state
+    my ($chr, $chr_state, $winStart, $winEnd) = ($1, $2, $3, $4) if $fileName =~ /^(\w+)_(\w)_output_(\d+)-(\d+)/;
+    say "chr $chr, chr_state $chr_state, winStart $winStart, winEnd $winEnd";
+
+    # Parse $ filter headers (N1 N2 t2 f0, etc ... )
+    my @headers = $file[5];
+    my @headersSep;
+    foreach (@headers) {
+        @headersSep = split " ";
+    }
+
+    #Read No. of data sets
+    my $numDatasets = first { /No. data sets \d+/ } @file; #Store line content where regex matches
+    $numDatasets = $1 if ( $numDatasets =~ /No. data sets (\d+)/ ); #Keep just the number of datasets
+    #say "numDatasets <$numDatasets>";
+    
+    return ($fileName, $chr, $chr_state, $winStart, $winEnd, \@headersSep, $numDatasets);
 }
+
+#   sub createDatasetObjects {
+#       my @listOfObjects;
+#       foreach (1 .. $numDatasets) {
+#           #say "<$_>";
+#           my $objectName = "dataset_$_";
+#           #say "\$objectName <$objectName>";
+#           my $objectname = DFEdataset->new (
+#               parentFilename => "$fileName",
+#               chromosome => "$chr",
+#               chr_state => "$chr_state",
+#               parentWinRange => "$winStart-$winEnd",
+#               datasetNumber => "$_",
+#               );
+#           push @listOfObjects, $objectname;
+#       }
+#       return (\@listOfObjects)
+#   }
+#   
+#   
+
+#   #   #   #   #   #   #   #
 
 ## Just checking
 #say "<$_>" foreach (@paramEstimates);
