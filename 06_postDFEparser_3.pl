@@ -58,9 +58,19 @@ $numDatasets = $1 if ( $numDatasets =~ /No. data sets (\d+)/ ); #Keep just the n
 
 
 
-createDatasetObjects();
+my $listOfObjects = createDatasetObjects();
+foreach (@{ $listOfObjects }) {
+    say "Dataset " . $_->datasetNumber;
+    say "\tparentFilename " . $_->parentFilename;
+    say "\tChromosome " . $_->chromosome;
+    say "\tchr_state " . $_->chr_state;
+    say "\tparentWinRange " . $_->parentWinRange;
+
+}
+#say "listofobjects<$_>" foreach (@{ $listOfObjects });
 
 sub createDatasetObjects {
+    my @listOfObjects;
     foreach (1 .. $numDatasets) {
         #say "<$_>";
         my $objectName = "dataset_$_";
@@ -70,9 +80,11 @@ sub createDatasetObjects {
             chromosome => "$chr",
             chr_state => "$chr_state",
             parentWinRange => "$winStart-$winEnd",
+            datasetNumber => "$_",
             );
+        push @listOfObjects, $objectname;
     }
-    #return ( )
+    return (\@listOfObjects)
 }
 
 
