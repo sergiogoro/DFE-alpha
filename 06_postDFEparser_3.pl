@@ -3,6 +3,7 @@
 # # Preamble
 use strict; use warnings; use feature 'say'; use Getopt::Long; use Data::Dumper;
 use List::Util 'first'; #Finds first match in an array
+use DFEdataset;
 
 # # Globar vars
 my $help = undef;
@@ -54,6 +55,26 @@ foreach (@headers) {
 my $numDatasets = first { /No. data sets \d+/ } @cleanFile; #Store line
 $numDatasets = $1 if ( $numDatasets =~ /No. data sets (\d+)/ ); #Keep just the number of datasets
 #say "numDatasets <$numDatasets>";
+
+
+
+createDatasetObjects();
+
+sub createDatasetObjects {
+    foreach (1 .. $numDatasets) {
+        #say "<$_>";
+        my $objectName = "dataset_$_";
+        #say "\$objectName <$objectName>";
+        my $objectname = DFEdataset->new (
+            parentFilename => "$fileName",
+            chromosome => "$chr",
+            chr_state => "$chr_state",
+            parentWinRange => "$winStart-$winEnd",
+            );
+    }
+    #return ( )
+}
+
 
 # Parse & filter param estimates
 #my @paramEstimates;
