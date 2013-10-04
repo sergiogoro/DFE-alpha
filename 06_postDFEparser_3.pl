@@ -1,10 +1,13 @@
 #! /usr/bin/env perl
 
+# # Preamble
 use strict; use warnings; use feature 'say'; use Getopt::Long; use Data::Dumper;
 
+# # Globar vars
 my $help = undef;
 my $inputFile;
 
+# # Subroutines
 usage() if (
     @ARGV < 1 or
     !GetOptions(
@@ -14,12 +17,16 @@ usage() if (
 
 sub usage {say "Usage: $0 -input <input file> [-help]"};
 
+# # Main
 open (my $inputFile_fh, "<", "$inputFile") or die "Couldn't open $inputFile $!";
 my $outputFile = $inputFile . "_processed";
 open (my $outputFile_fh, ">", "$outputFile") or die "Couldn't open $inputFile $!";
 
 # Read whole file
 my @file = <$inputFile_fh>;
+
+foreach (@file) {say "<$_>"};
+exit;
 
 #Clean the array from empty/void values
 my @cleanFile;
