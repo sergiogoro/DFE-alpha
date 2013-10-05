@@ -29,18 +29,41 @@ my @file = @{ $file_aref };
 my ($fileName, $chr, $chr_state, $winStart, $winEnd, $headersSep_ref, $numDatasets) = parseInitialData($inputFile_fh, \@file);
 my @headersSep = @{ $headersSep_ref };
 
+my $listOfObjects_aref = setIndividualDatasets($numDatasets);
+my @listOfObjects = @{ $listOfObjects_aref };
 
-#   
-#   # Create objects
-#   my $listOfObjects = createDatasetObjects();
-#   foreach (@{ $listOfObjects }) {
-#       say "Dataset " . $_->datasetNumber;
-#       say "\tparentFilename " . $_->parentFilename;
-#       say "\tChromosome " . $_->chromosome;
-#       say "\tchr_state " . $_->chr_state;
-#       say "\tparentWinRange " . $_->parentWinRange;
-#   
-#   }
+#   check   #   foreach my $elem (@listOfObjects) {
+#   check   #       say $elem->datasetNumber;
+#   check   #   }
+
+parseParamEstimates($listOfObjects_aref, $file_aref);
+
+#checking parseParamEstimates
+#for (my $i=0; $i < scalar(@listOfObjects); $i++) {
+#    say "digo \$i <$i>";
+#
+#}
+
+foreach my $a (@listOfObjects) {
+    print @{ $a->paramEstimates };
+    #print Dumper \$a;
+    #say $a->paramEstimates;
+}
+
+sub parseParamEstimates {
+    my $listOfObjects_aref = shift;
+    my $file_aref = shift;
+    my @listOfObjects = @{ $listOfObjects_aref };
+    my @file = @{ $file_aref };
+    #my @paramEstimates;
+    #my %hashParams;
+    for (my $i=6; $i < 6+$numDatasets; $i++ ) { #Param estimates are lines from [6] to [6 + $numdatasets]
+        push @{ $listOfObjects[$i-6]->paramEstimates }, $file[$i];
+
+        #$hashParams{"$i"} = $cleanFile[$i];
+    }
+    return 1;
+}
 
 
 #   
@@ -123,23 +146,38 @@ sub parseInitialData {
     return ($fileName, $chr, $chr_state, $winStart, $winEnd, \@headersSep, $numDatasets);
 }
 
-#   sub createDatasetObjects {
-#       my @listOfObjects;
-#       foreach (1 .. $numDatasets) {
-#           #say "<$_>";
-#           my $objectName = "dataset_$_";
-#           #say "\$objectName <$objectName>";
-#           my $objectname = DFEdataset->new (
-#               parentFilename => "$fileName",
-#               chromosome => "$chr",
-#               chr_state => "$chr_state",
-#               parentWinRange => "$winStart-$winEnd",
-#               datasetNumber => "$_",
-#               );
-#           push @listOfObjects, $objectname;
-#       }
-#       return (\@listOfObjects)
+sub setIndividualDatasets {
+    my $numDatasets = shift;
+    my @listOfObjects;
+    foreach (1 .. $numDatasets) {
+        #say "<$_>";
+        #my $object = "dataset_$_";
+        #say "\$objectName <$objectName>";
+        my $object = DFEdataset->new (
+            parentFilename => "$fileName",
+            chromosome => "$chr",
+            chr_state => "$chr_state",
+            parentWinRange => "$winStart-$winEnd",
+            datasetNumber => "$_",
+            );
+        push @listOfObjects, $object;
+    }
+    return (\@listOfObjects)
+}
+
+
+
+#   # Create objects
+#   my $listOfObjects = createDatasetObjects();
+#   foreach (@{ $listOfObjects }) {
+#       say "Dataset " . $_->datasetNumber;
+#       say "\tparentFilename " . $_->parentFilename;
+#       say "\tChromosome " . $_->chromosome;
+#       say "\tchr_state " . $_->chr_state;
+#       say "\tparentWinRange " . $_->parentWinRange;
+#   
 #   }
+
 #   
 #   
 
