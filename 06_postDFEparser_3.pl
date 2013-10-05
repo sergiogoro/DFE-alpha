@@ -17,72 +17,39 @@ usage() if (
     'input=s'   =>  \$inputFile,
     ) or defined $help);
 
+#Open input
 my $inputFile_fh_ref = openInput($inputFile);
-my $inputFile_fh = $$inputFile_fh_ref;
+my $inputFile_fh = $$inputFile_fh_ref; #Dereference
 
+#Open output
 my $outputFile_fh_ref = openOutput($inputFile);
-my $outputFile_fh = $$outputFile_fh_ref;
+my $outputFile_fh = $$outputFile_fh_ref; #Dereference
 
-my $file_aref = readFile($inputFile_fh);
+#Read input
+my $file_aref = readFile($inputFile_fh); #Dereference
 my @file = @{ $file_aref };
 
+#1st parse
 my ($fileName, $chr, $chr_state, $winStart, $winEnd, $headersSep_ref, $numDatasets) = parseInitialData($inputFile_fh, \@file);
-my @headersSep = @{ $headersSep_ref };
+my @headersSep = @{ $headersSep_ref }; #Dereference
 
+#Create objects
 my $listOfObjects_aref = setIndividualDatasets($numDatasets);
-my @listOfObjects = @{ $listOfObjects_aref };
+my @listOfObjects = @{ $listOfObjects_aref }; #Dereference
 
-#   check   #   foreach my $elem (@listOfObjects) {
-#   check   #       say $elem->datasetNumber;
-#   check   #   }
-
+#More parsing
 parseParamEstimates($listOfObjects_aref, $file_aref);
+    #checking parseParamEstimates
+    #foreach my $a (@listOfObjects) {
+    #    print @{ $a->paramEstimates };
+    #    #print Dumper \$a;
+    #    #say $a->paramEstimates;
+    #}
 
-#checking parseParamEstimates
-#for (my $i=0; $i < scalar(@listOfObjects); $i++) {
-#    say "digo \$i <$i>";
-#
-#}
-
-foreach my $a (@listOfObjects) {
-    print @{ $a->paramEstimates };
-    #print Dumper \$a;
-    #say $a->paramEstimates;
-}
-
-sub parseParamEstimates {
-    my $listOfObjects_aref = shift;
-    my $file_aref = shift;
-    my @listOfObjects = @{ $listOfObjects_aref };
-    my @file = @{ $file_aref };
-    #my @paramEstimates;
-    #my %hashParams;
-    for (my $i=6; $i < 6+$numDatasets; $i++ ) { #Param estimates are lines from [6] to [6 + $numdatasets]
-        push @{ $listOfObjects[$i-6]->paramEstimates }, $file[$i];
-
-        #$hashParams{"$i"} = $cleanFile[$i];
-    }
-    return 1;
-}
+moreParsing($listOfObjects_aref, $file_aref);
 
 
-#   
-#   
-#   # Parse & filter param estimates
-#   #my @paramEstimates;
-#   my %hashParams;
-#   for (my $i=6; $i < 6+$numDatasets; $i++ ) { #Param estimates are lines from [6] to [numdatasets-1]
-#       #push @paramEstimates, $cleanFile[$i];
-#       $hashParams{"$i"} = $cleanFile[$i];
-#   
-#   }
-#   
-#   
-
-
-
-
-# # Subroutines
+# # # Subroutines
 sub usage {say "Usage: $0 -input <input file> [-help]"};
 
 sub openInput {
@@ -165,34 +132,23 @@ sub setIndividualDatasets {
     return (\@listOfObjects)
 }
 
+sub parseParamEstimates {
+    my $listOfObjects_aref = shift;
+    my $file_aref = shift;
+    my @listOfObjects = @{ $listOfObjects_aref };
+    my @file = @{ $file_aref };
+    #my @paramEstimates;
+    #my %hashParams;
+    for (my $i=6; $i < 6+$numDatasets; $i++ ) { #Param estimates are lines from [6] to [6 + $numdatasets]
+        push @{ $listOfObjects[$i-6]->paramEstimates }, $file[$i];
 
+        #$hashParams{"$i"} = $cleanFile[$i];
+    }
+    return 1;
+}
 
-#   # Create objects
-#   my $listOfObjects = createDatasetObjects();
-#   foreach (@{ $listOfObjects }) {
-#       say "Dataset " . $_->datasetNumber;
-#       say "\tparentFilename " . $_->parentFilename;
-#       say "\tChromosome " . $_->chromosome;
-#       say "\tchr_state " . $_->chr_state;
-#       say "\tparentWinRange " . $_->parentWinRange;
-#   
-#   }
+sub moreParsing {
 
-#   
-#   
-
-#   #   #   #   #   #   #   #
-
-## Just checking
-#say "<$_>" foreach (@paramEstimates);
-#foreach my $key (sort {$a <=> $b} keys(%hashParams)) {
-#    say "\$key <$key>\tvalue <$hashParams{$key}>";
-#}
-
-
-
-
-#   #   
 #   #   # Parse & filter info of input data
 #   #   my $selectedAnalyzed = $cleanFile[12];
 #   #   my $numSelectedDivSites = $1 and my $numSelectedDiff = $2 if ($selectedAnalyzed =~ /(\d+)\D*(\d+)/);
@@ -206,6 +162,27 @@ sub setIndividualDatasets {
 #   #   #$numAnalyzed = $1 if ($numAnalyzed =~ /(\d+)\n/);
 #   #   $numAnalyzed = 128;
 #   #   
+
+}
+
+#   #   #   #   #   #   #   #
+#   #   
+#   #   # Parse & filter info of input data
+#   #   my $selectedAnalyzed = $cleanFile[12];
+#   #   my $numSelectedDivSites = $1 and my $numSelectedDiff = $2 if ($selectedAnalyzed =~ /(\d+)\D*(\d+)/);
+#   #   
+#   #   # Parse & filter neutral sites analyzed
+#   #   my $neutralAnalyzed = $cleanFile[13];
+#   #   my $numNeutralDivSites = $1 and my $numNeutralDiff = $2 if ($neutralAnalyzed =~ /(\d+)\D*(\d+)/);
+#   #   
+#   #   # Parse & filter num of sites analyzed
+#   #   my $numAnalyzed = $cleanFile[14];
+#   #   #$numAnalyzed = $1 if ($numAnalyzed =~ /(\d+)\n/);
+#   #   $numAnalyzed = 128;
+#
+#
+#
+#
 #   #   # Parse & filter proportions of mutants
 #   #   my $proporMutants_range0_1 = $cleanFile[20];
 #   #   $proporMutants_range0_1 = $1 if ($proporMutants_range0_1 =~ /(\d+\.?\d+)/); #This will match numbers like '12'
@@ -216,6 +193,10 @@ sub setIndividualDatasets {
 #   #   my $proporMutants_range100_inf = $cleanFile[23];
 #   #   $proporMutants_range100_inf = $1 if ($proporMutants_range100_inf =~ /(\d+\.\d+)/);
 #   #   
+#
+#
+#
+#
 #   #   # Parse & filter param estimates
 #   #   my @paramEstimates = $cleanFile[6];
 #   #   my @paramEstimatesSep;
@@ -223,6 +204,10 @@ sub setIndividualDatasets {
 #   #       @paramEstimatesSep = split " ";
 #   #   }
 #   #   
+#
+#
+#
+#
 #   #   # Print header
 #   #   my $header_1 = "fileName\tchr\txf_1\txf_2\tchr_state\tnumSelectedDivSites\tnumSelectedDiff\tnumNeutralDivSites\tnumNeutralDiff\tnumAnalyzed\t";
 #   #   print $outputFile_fh $header_1;
@@ -232,6 +217,10 @@ sub setIndividualDatasets {
 #   #       print $outputFile_fh "$headersSep[$_]\t";
 #   #       #print "$headersSep[$_]\t";
 #   #   }
+#   
+#
+#
+#
 #   #   
 #   #   print $outputFile_fh "\n";
 #   #   my $data_1 = "$fileName\t$chr\t$xf1\t$xf2\t$chr_state\t$numSelectedDivSites\t$numSelectedDiff\t$numNeutralDivSites\t$numNeutralDiff\t$numAnalyzed\t";
