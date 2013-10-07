@@ -178,52 +178,53 @@ sub parseIndividualDataset {
     #foreach my $elem (@selectedSFS) { say "Element <$elem>" }
     #say "-"x30;
 
-    # Parse the proportions of mutants data     #To-Do
+    # Parse the proportions of mutants data
+    my ($proporMutants_range0_1) = $file[$datasetIndex+9] =~ /Proportion .* = (\d+.\d+)/g;
+    my ($proporMutants_range1_10) = $file[$datasetIndex+10] =~ /Proportion .* = (\d+.\d+)/g;
+    my ($proporMutants_range10_100) = $file[$datasetIndex+11] =~ /Proportion .* = (\d+.\d+)/g;
+    my ($proporMutants_range100_inf) = $file[$datasetIndex+12] =~ /Proportion .* = (\d+.\d+)/g;
 
-    # Check proportions of mutants data     #To-Do
-    
+    # Check proportions of mutants data
+    #say "\$proporMutants_range0_1 <$proporMutants_range0_1>";
+    #say "\$proporMutants_range100_inf <$proporMutants_range100_inf>";
+
     # Save parsed data into objects
-    storeDataIntoObjects($datasetNumber, $numSelectedDivSites, $numSelectedDiff, $numNeutralDivSites, $numNeutralDiff, \@selectedSFS, \@neutralSFS);
+    storeDataIntoObjects($datasetNumber, $numSelectedDivSites, $numSelectedDiff, $numNeutralDivSites, $numNeutralDiff, \@selectedSFS, \@neutralSFS, $proporMutants_range0_1, $proporMutants_range1_10, $proporMutants_range10_100, $proporMutants_range100_inf);
 }
 
 sub storeDataIntoObjects {  #To-Do: Check num of parameters received
-    my ($datasetNumber, $numSelectedDivSites, $numSelectedDiff, $numNeutralDivSites, $numNeutralDiff, $selectedSFS_aref, $neutralSFS_aref) = @_;
-   
-    # Checking indexes
-    #say $listOfObjects[$datasetNumber-1]->datasetNumber;
-    #say "-"x30;
+    my ($datasetNumber, $numSelectedDivSites, $numSelectedDiff, $numNeutralDivSites, $numNeutralDiff, $selectedSFS_aref, $neutralSFS_aref, $proporMutants_range0_1, $proporMutants_range1_10, $proporMutants_range10_100, $proporMutants_range100_inf) = @_;
 
     # Saving data into corresponding attributes of the objects
     $listOfObjects[$datasetNumber-1]->numSelectedDivSites( $numSelectedDivSites );
     $listOfObjects[$datasetNumber-1]->numSelectedDiff( $numSelectedDiff );
     $listOfObjects[$datasetNumber-1]->numNeutralDivSites( $numNeutralDivSites );
     $listOfObjects[$datasetNumber-1]->numNeutralDiff( $numNeutralDiff );
-   
+
     # Saving data (selected and neutral SFS vectors) into their corresponding attributes (selectedSFS and neutralSFS; with type: ArrayRef[Int]) of the objects
     $listOfObjects[$datasetNumber-1]->selectedSFS( $selectedSFS_aref ); #We save the arrayReferences (and not the array themselves), as that's the data type declared in the module (DFEdataset.pm)
     $listOfObjects[$datasetNumber-1]->neutralSFS( $neutralSFS_aref );
 
+    #Saving data (proportion of mutants)
+    $listOfObjects[$datasetNumber-1]->proporMutants_range0_1($proporMutants_range0_1);
+    $listOfObjects[$datasetNumber-1]->proporMutants_range1_10($proporMutants_range1_10);
+    $listOfObjects[$datasetNumber-1]->proporMutants_range10_100($proporMutants_range10_100);
+    $listOfObjects[$datasetNumber-1]->proporMutants_range100_inf($proporMutants_range100_inf);
+
     # Checking ...
     #say "set\nSay: \$listOfObjects[\$datasetNumber-1]->numSelectedDivSites <" . $listOfObjects[$datasetNumber-1]->numSelectedDivSites . ">";
-    #foreach my $elem ( @{ $listOfObjects[$datasetNumber-1]->selectedSFS } ) { say "\$elem <$elem>" }
+    #foreach my $elem ( @{ $listOfObjects[$datasetNumber-1]->selectedSFS } ) { say "\$elem <$elem>" } # Maybe this wrong
+    #say $listOfObjects[$datasetNumber-1]->proporMutants_range0_1;
     #say "-"x30;
 }
 
+sub writeOutput {
+    #
+    #
+}
 
 
 #   #   #   #   #   #   #   #
-#
-#   #   # Parse & filter proportions of mutants
-#   #   my $proporMutants_range0_1 = $cleanFile[20];
-#   #   $proporMutants_range0_1 = $1 if ($proporMutants_range0_1 =~ /(\d+\.?\d+)/); #This will match numbers like '12'
-#   #   my $proporMutants_range1_10 = $cleanFile[21];
-#   #   $proporMutants_range1_10 = $1 if ($proporMutants_range1_10 =~ /\D*(\d+\.\d+)/); #This won't, but otherwise it'll match '10' from 'range 10 ..10'
-#   #   my $proporMutants_range10_100 = $cleanFile[22];
-#   #   $proporMutants_range10_100 = $1 if ($proporMutants_range10_100 =~ /(\d+\.\d+)/);
-#   #   my $proporMutants_range100_inf = $cleanFile[23];
-#   #   $proporMutants_range100_inf = $1 if ($proporMutants_range100_inf =~ /(\d+\.\d+)/);
-#   #   
-#
 #
 #   #   # Print header
 #   #   my $header_1 = "fileName\tchr\txf_1\txf_2\tchr_state\tnumSelectedDivSites\tnumSelectedDiff\tnumNeutralDivSites\tnumNeutralDiff\tnumAnalyzed\t";
