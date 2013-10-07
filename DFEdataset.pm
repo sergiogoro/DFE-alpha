@@ -7,7 +7,7 @@ use feature 'say'; use Data::Dumper;
 use Moose::Util::TypeConstraints; #For defining subtypes
 
 # # Attributes
-#Parental attrib.
+# Parental attrib.
 has parentFilename => (
     is => 'rw',
     isa => 'Str',
@@ -17,9 +17,10 @@ has parentFilename => (
 has parentWinRange => (
     is => 'rw',
     isa => 'Str',
+    required => 1,
 );
 
-#Dataset attrib.
+# Dataset attrib.
 has datasetNumber => (
     is => 'rw',
     isa => 'Num',
@@ -28,11 +29,13 @@ has datasetNumber => (
 has chromosome => (
     is => 'rw',
     isa => 'Str',
+    required => 1,
 );
 
 has chr_state => (
     is => 'rw',
     isa => 'Str',
+    required => 1,
 );
 
 has winStart => (
@@ -67,6 +70,11 @@ has numSelectedDiff => (
     isa => 'Num',
 );
 
+has selectedSFS => (
+    is => 'rw',
+    isa => 'ArrayRef[Int]',
+);
+
 # Neutral
 has neutralAnalyzed => (
     is => 'rw',
@@ -83,13 +91,18 @@ has numNeutralDiff => (
     isa => 'Num',
 );
 
+has neutralSFS => (
+    is => 'rw',
+    isa => 'ArrayRef[Int]',
+);
+
 # Num. sites analyzed
 has numAnalyzed => (
     is => 'rw',
     isa => 'Num',
 );
 
-#Proportion of mutants
+# Proportion of mutants
 has proporMutants_range0_1 => (
     is => 'rw',
     isa => 'Num',

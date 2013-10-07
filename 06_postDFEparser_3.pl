@@ -47,7 +47,7 @@ parseParamEstimates($listOfObjects_aref, $file_aref);
     #    #say $a->paramEstimates;
     #}
 
-moreParsing($listOfObjects_aref, $file_aref, $numDatasets);
+getDatasetIndexes($file_aref, $numDatasets);
 
 
 # # # Subroutines
@@ -87,9 +87,6 @@ sub parseInitialData {
     my $inputFile_fh = shift;
     my $file_arr_ref = shift;
     my @file = @$file_arr_ref;
-    #say "\$inputFile_fh es < " . $inputFile_fh . " >";
-    #say "\@file";
-    #foreach (@file) {say "<$_>"};
 
     # Parse filename
     my $fileName = $file[0];
@@ -109,7 +106,6 @@ sub parseInitialData {
     #Read No. of data sets
     my $numDatasets = first { /No. data sets \d+/ } @file; #Store line content where regex matches
     $numDatasets = $1 if ( $numDatasets =~ /No. data sets (\d+)/ ); #Keep just the number of datasets
-    #say "numDatasets <$numDatasets>";
     
     return ($fileName, $chr, $chr_state, $winStart, $winEnd, \@headersSep, $numDatasets);
 }
@@ -138,74 +134,101 @@ sub parseParamEstimates {
     my $file_aref = shift;
     my @listOfObjects = @{ $listOfObjects_aref };
     my @file = @{ $file_aref };
-    #my @paramEstimates;
-    #my %hashParams;
     for (my $i=6; $i < 6+$numDatasets; $i++ ) { #Param estimates are lines from [6] to [6 + $numdatasets]
         push @{ $listOfObjects[$i-6]->paramEstimates }, $file[$i];
-
-        #$hashParams{"$i"} = $cleanFile[$i];
     }
     return 1;
 }
 
-sub moreParsing {
-    my $listOfObjects_aref = shift;
+sub getDatasetIndexes {
     my $file_aref = shift;
     my $numDatasets = shift;
-    my @listOfObjects = @{ $listOfObjects_aref };
     my @file = @{ $file_aref };
     # For every dataset
-    for (my $dataset = 1; $dataset <= $numDatasets; $dataset++) {
-        my $datasetIndex = first_index { /Data set $dataset/ } @file;   # Save first line matching our dataset
-        #say $file[$datasetIndex];
-        #say $file[eval($datasetIndex+13)];
-        #last;
-        for (my $i = $datasetIndex ; $i <= eval($datasetIndex+12) ; $i++ ) {
-            say "Dataset <$dataset>";
-            say "\tdatasetIndex <$i>";
-            say "\t Line <" . $file[$i] . ">";
-            say "-"x30;
-        }
+    for (my $datasetNumber = 1; $datasetNumber <= $numDatasets; $datasetNumber++) {
+        my $datasetIndex = first_index { /Data set $datasetNumber/ } @file;   # Save first line matching our dataset
+        parseIndividualDataset($file_aref, $datasetNumber, $datasetIndex);  #Call another sub (which will parse the data) with the $datasetIndex, and let the sub do the magic.
     }
-
-    # Save first line matching our dataset
-
-    # Read lines matching this dataset
-    #for (my $i =
-
-#   #   # Parse & filter info of input data
-#   #   my $selectedAnalyzed = $cleanFile[12];
-#   #   my $numSelectedDivSites = $1 and my $numSelectedDiff = $2 if ($selectedAnalyzed =~ /(\d+)\D*(\d+)/);
-#   #   
-#   #   # Parse & filter neutral sites analyzed
-#   #   my $neutralAnalyzed = $cleanFile[13];
-#   #   my $numNeutralDivSites = $1 and my $numNeutralDiff = $2 if ($neutralAnalyzed =~ /(\d+)\D*(\d+)/);
-#   #   
-#   #   # Parse & filter num of sites analyzed
-#   #   my $numAnalyzed = $cleanFile[14];
-#   #   #$numAnalyzed = $1 if ($numAnalyzed =~ /(\d+)\n/);
-#   #   $numAnalyzed = 128;
-#   #   
-
 }
 
+sub parseIndividualDataset {
+    my ($file_aref, $datasetNumber, $datasetIndex) = @_ ;
+    my @file = @{ $file_aref };
+    
+    # Parse the sites data
+    my ($numSelectedDivSites) = $file[ eval($datasetIndex+1) ] =~ m/selected divergence sites (\d+)/g;
+    my ($numSelectedDiff) = $file[ eval($datasetIndex+1) ] =~ m/selected differences (\d+)/g;
+    my ($numNeutralDivSites) = $file[ eval($datasetIndex+2) ] =~ m/neutral divergence sites (\d+)/g;
+    my ($numNeutralDiff) = $file[ eval($datasetIndex+2) ] =~ m/neutral differences (\d+)/g;
+    my (@selectedSFS) = $file[ eval($datasetIndex+4) ] =~ m/Selected SFS: (.*)/g;   #Match in list context ( my ($savedHere) = ... ) to save the capture groups
+    my (@neutralSFS) = $file[ eval($datasetIndex+5) ] =~ m/Neutral SFS: (.*)/g;
+    
+    # Check sites data
+    #say "\$numSelectedDivSites <$numSelectedDivSites>";
+    #say "\$numSelectedDiff <$numSelectedDiff>";
+    #say "\$numNeutralDivSites <$numNeutralDivSites>";
+    #say "\$numNeutralDiff <$numNeutralDiff>";
+    #say @selectedSFS;
+    #say @neutralSFS;
+    
+    say "Let's check \@selectedSFS array";
+    foreach my $elem (@selectedSFS) { say "Element <$elem>" }
+    say "-"x30;
+
+
+    # Parse the proportions of mutants data     #To-Do
+
+    # Check proportions of mutants data     #To-Do
+    
+    # Save parsed data into objects
+    storeDataIntoObjects($datasetNumber, $numSelectedDivSites, $numSelectedDiff, $numNeutralDivSites, $numNeutralDiff, \@selectedSFS, \@neutralSFS);
+}
+
+sub storeDataIntoObjects {  #To-Do: Check num of parameters received
+    my ($datasetNumber, $numSelectedDivSites, $numSelectedDiff, $numNeutralDivSites, $numNeutralDiff, $selectedSFS_aref, $neutralSFS_aref) = @_;
+   
+    # Checking indexes
+    #say $listOfObjects[$datasetNumber-1]->datasetNumber;
+    #say "-"x30;
+
+    # Saving data into corresponding objects
+    $listOfObjects[$datasetNumber-1]->numSelectedDivSites( $numSelectedDivSites );
+    $listOfObjects[$datasetNumber-1]->numSelectedDiff( $numSelectedDiff );
+    $listOfObjects[$datasetNumber-1]->numNeutralDivSites( $numNeutralDivSites );
+    $listOfObjects[$datasetNumber-1]->numNeutralDiff( $numNeutralDiff );
+   
+    # Checking ...
+    #say "set\nSay: \$listOfObjects[\$datasetNumber-1]->numSelectedDivSites <" . $listOfObjects[$datasetNumber-1]->numSelectedDivSites . ">";
+    
+    #Now, lets save the arrays....
+#    #push $listOfObjects[$datasetNumber-1]->selectedSFS, @{ $selectedSFS_aref };
+#
+#    $listOfObjects[$datasetNumber-1]->selectedSFS( @{ $selectedSFS_aref } );    #Doesn't works, because @{ $selectedSFS_aref } contains only one value (all the numbers in a scalar) and not a list of values
+#    $listOfObjects[$datasetNumber-1]->neutralSFS( @{ $neutralSFS_aref } );
+#
+#    #push $listOfObjects[$datasetNumber-1]->selectedSFS, @{ $selectedSFS_aref };
+#    #push $listOfObjects[$datasetNumber-1]->selectedSFS, @{ $selectedSFS_aref };
+
+#Examples of saving data into objects
+    #foreach (1 .. $numDatasets) {
+    #    #say "<$_>";
+    #    #my $object = "dataset_$_";
+    #    #say "\$objectName <$objectName>";
+    #    my $object = DFEdataset->new (
+    #        parentFilename => "$fileName",
+    #        chromosome => "$chr",
+    #        chr_state => "$chr_state",
+    #        parentWinRange => "$winStart-$winEnd",
+    #        datasetNumber => "$_",
+    #        );
+    #    push @listOfObjects, $object;
+    #}
+    
+}
+
+
+
 #   #   #   #   #   #   #   #
-#   #   
-#   #   # Parse & filter info of input data
-#   #   my $selectedAnalyzed = $cleanFile[12];
-#   #   my $numSelectedDivSites = $1 and my $numSelectedDiff = $2 if ($selectedAnalyzed =~ /(\d+)\D*(\d+)/);
-#   #   
-#   #   # Parse & filter neutral sites analyzed
-#   #   my $neutralAnalyzed = $cleanFile[13];
-#   #   my $numNeutralDivSites = $1 and my $numNeutralDiff = $2 if ($neutralAnalyzed =~ /(\d+)\D*(\d+)/);
-#   #   
-#   #   # Parse & filter num of sites analyzed
-#   #   my $numAnalyzed = $cleanFile[14];
-#   #   #$numAnalyzed = $1 if ($numAnalyzed =~ /(\d+)\n/);
-#   #   $numAnalyzed = 128;
-#
-#
-#
 #
 #   #   # Parse & filter proportions of mutants
 #   #   my $proporMutants_range0_1 = $cleanFile[20];
