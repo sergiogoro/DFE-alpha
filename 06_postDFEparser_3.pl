@@ -2,7 +2,8 @@
 
 # # # Preamble
 use strict; use warnings; use feature 'say'; use Getopt::Long; use Data::Dumper;
-use List::Util 'first'; #Finds first match in an array
+use List::Util 'first'; #Finds first match in an array  #my $match = first { /pattern/ } @list_of_strings;
+use List::MoreUtils 'first_index';  #Finds index of the first match     #my $index = first_index { /pattern/ } @list_of_strings;
 use DFEdataset;
 
 # # # Globar vars
@@ -46,7 +47,7 @@ parseParamEstimates($listOfObjects_aref, $file_aref);
     #    #say $a->paramEstimates;
     #}
 
-moreParsing($listOfObjects_aref, $file_aref);
+moreParsing($listOfObjects_aref, $file_aref, $numDatasets);
 
 
 # # # Subroutines
@@ -148,6 +149,29 @@ sub parseParamEstimates {
 }
 
 sub moreParsing {
+    my $listOfObjects_aref = shift;
+    my $file_aref = shift;
+    my $numDatasets = shift;
+    my @listOfObjects = @{ $listOfObjects_aref };
+    my @file = @{ $file_aref };
+    # For every dataset
+    for (my $dataset = 1; $dataset <= $numDatasets; $dataset++) {
+        my $datasetIndex = first_index { /Data set $dataset/ } @file;   # Save first line matching our dataset
+        #say $file[$datasetIndex];
+        #say $file[eval($datasetIndex+13)];
+        #last;
+        for (my $i = $datasetIndex ; $i <= eval($datasetIndex+12) ; $i++ ) {
+            say "Dataset <$dataset>";
+            say "\tdatasetIndex <$i>";
+            say "\t Line <" . $file[$i] . ">";
+            say "-"x30;
+        }
+    }
+
+    # Save first line matching our dataset
+
+    # Read lines matching this dataset
+    #for (my $i =
 
 #   #   # Parse & filter info of input data
 #   #   my $selectedAnalyzed = $cleanFile[12];
