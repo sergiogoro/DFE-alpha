@@ -178,7 +178,6 @@ sub parseIndividualDataset {
     #foreach my $elem (@selectedSFS) { say "Element <$elem>" }
     #say "-"x30;
 
-
     # Parse the proportions of mutants data     #To-Do
 
     # Check proportions of mutants data     #To-Do
@@ -194,24 +193,20 @@ sub storeDataIntoObjects {  #To-Do: Check num of parameters received
     #say $listOfObjects[$datasetNumber-1]->datasetNumber;
     #say "-"x30;
 
-    # Saving data into corresponding objects
+    # Saving data into corresponding attributes of the objects
     $listOfObjects[$datasetNumber-1]->numSelectedDivSites( $numSelectedDivSites );
     $listOfObjects[$datasetNumber-1]->numSelectedDiff( $numSelectedDiff );
     $listOfObjects[$datasetNumber-1]->numNeutralDivSites( $numNeutralDivSites );
     $listOfObjects[$datasetNumber-1]->numNeutralDiff( $numNeutralDiff );
    
+    # Saving data (selected and neutral SFS vectors) into their corresponding attributes (selectedSFS and neutralSFS; with type: ArrayRef[Int]) of the objects
+    $listOfObjects[$datasetNumber-1]->selectedSFS( $selectedSFS_aref ); #We save the arrayReferences (and not the array themselves), as that's the data type declared in the module (DFEdataset.pm)
+    $listOfObjects[$datasetNumber-1]->neutralSFS( $neutralSFS_aref );
+
     # Checking ...
     #say "set\nSay: \$listOfObjects[\$datasetNumber-1]->numSelectedDivSites <" . $listOfObjects[$datasetNumber-1]->numSelectedDivSites . ">";
-    
-    #Now, lets save the arrays....
-#    #push $listOfObjects[$datasetNumber-1]->selectedSFS, @{ $selectedSFS_aref };
-#
-#    $listOfObjects[$datasetNumber-1]->selectedSFS( @{ $selectedSFS_aref } );    #Doesn't works, because @{ $selectedSFS_aref } contains only one value (all the numbers in a scalar) and not a list of values
-#    $listOfObjects[$datasetNumber-1]->neutralSFS( @{ $neutralSFS_aref } );
-#
-#    #push $listOfObjects[$datasetNumber-1]->selectedSFS, @{ $selectedSFS_aref };
-#    #push $listOfObjects[$datasetNumber-1]->selectedSFS, @{ $selectedSFS_aref };
-
+    #foreach my $elem ( @{ $listOfObjects[$datasetNumber-1]->selectedSFS } ) { say "\$elem <$elem>" }
+    #say "-"x30;
 }
 
 
@@ -228,19 +223,6 @@ sub storeDataIntoObjects {  #To-Do: Check num of parameters received
 #   #   my $proporMutants_range100_inf = $cleanFile[23];
 #   #   $proporMutants_range100_inf = $1 if ($proporMutants_range100_inf =~ /(\d+\.\d+)/);
 #   #   
-#
-#
-#
-#
-#   #   # Parse & filter param estimates
-#   #   my @paramEstimates = $cleanFile[6];
-#   #   my @paramEstimatesSep;
-#   #   foreach (@paramEstimates) {
-#   #       @paramEstimatesSep = split " ";
-#   #   }
-#   #   
-#
-#
 #
 #
 #   #   # Print header
