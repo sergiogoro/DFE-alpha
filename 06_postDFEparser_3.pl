@@ -160,9 +160,13 @@ sub parseIndividualDataset {
     my ($numSelectedDiff) = $file[ eval($datasetIndex+1) ] =~ m/selected differences (\d+)/g;
     my ($numNeutralDivSites) = $file[ eval($datasetIndex+2) ] =~ m/neutral divergence sites (\d+)/g;
     my ($numNeutralDiff) = $file[ eval($datasetIndex+2) ] =~ m/neutral differences (\d+)/g;
-    my (@selectedSFS) = $file[ eval($datasetIndex+4) ] =~ m/Selected SFS: (.*)/g;   #Match in list context ( my ($savedHere) = ... ) to save the capture groups
-    my (@neutralSFS) = $file[ eval($datasetIndex+5) ] =~ m/Neutral SFS: (.*)/g;
-    
+    my $selectedSFS = $1 if ( $file[$datasetIndex+4] =~ /Selected SFS: (.*)/g );
+    my @selectedSFS;
+    push @selectedSFS, split " ", $selectedSFS;
+    my $neutralSFS = $1 if ( $file[$datasetIndex+5] =~ /Neutral SFS: (.*)/g );
+    my @neutralSFS;
+    push @neutralSFS, split " ", $neutralSFS;
+
     # Check sites data
     #say "\$numSelectedDivSites <$numSelectedDivSites>";
     #say "\$numSelectedDiff <$numSelectedDiff>";
@@ -170,10 +174,9 @@ sub parseIndividualDataset {
     #say "\$numNeutralDiff <$numNeutralDiff>";
     #say @selectedSFS;
     #say @neutralSFS;
-    
-    say "Let's check \@selectedSFS array";
-    foreach my $elem (@selectedSFS) { say "Element <$elem>" }
-    say "-"x30;
+    #say "Let's check \@selectedSFS array";
+    #foreach my $elem (@selectedSFS) { say "Element <$elem>" }
+    #say "-"x30;
 
 
     # Parse the proportions of mutants data     #To-Do
@@ -209,21 +212,6 @@ sub storeDataIntoObjects {  #To-Do: Check num of parameters received
 #    #push $listOfObjects[$datasetNumber-1]->selectedSFS, @{ $selectedSFS_aref };
 #    #push $listOfObjects[$datasetNumber-1]->selectedSFS, @{ $selectedSFS_aref };
 
-#Examples of saving data into objects
-    #foreach (1 .. $numDatasets) {
-    #    #say "<$_>";
-    #    #my $object = "dataset_$_";
-    #    #say "\$objectName <$objectName>";
-    #    my $object = DFEdataset->new (
-    #        parentFilename => "$fileName",
-    #        chromosome => "$chr",
-    #        chr_state => "$chr_state",
-    #        parentWinRange => "$winStart-$winEnd",
-    #        datasetNumber => "$_",
-    #        );
-    #    push @listOfObjects, $object;
-    #}
-    
 }
 
 
