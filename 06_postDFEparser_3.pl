@@ -121,9 +121,6 @@ sub setIndividualDatasets {
     my $numDatasets = shift;
     my @listOfObjects;
     foreach (1 .. $numDatasets) {
-        #say "<$_>";
-        #my $object = "dataset_$_";
-        #say "\$objectName <$objectName>";
         my $object = DFEdataset->new (
             parentFilename => "$fileName",
             chromosome => "$chr",
@@ -166,7 +163,6 @@ sub parseParamEstimates {
             'proporMutants_range10_100' =>  $paramsSep[12],
             'proporMutants_range100_inf' =>  $paramsSep[13],
         );
-        #$listOfObjects[$i-6]->paramEstimates_hash( { 'N1' => $paramsSep[0] } );
         $listOfObjects[$i-6]->paramEstimates_hash( \%hash  );
     }
     return 1;
@@ -199,26 +195,11 @@ sub parseIndividualDataset {
     my @neutralSFS;
     push @neutralSFS, split " ", $neutralSFS;
 
-    # Check sites data
-    #say "\$numSelectedDivSites <$numSelectedDivSites>";
-    #say "\$numSelectedDiff <$numSelectedDiff>";
-    #say "\$numNeutralDivSites <$numNeutralDivSites>";
-    #say "\$numNeutralDiff <$numNeutralDiff>";
-    #say @selectedSFS;
-    #say @neutralSFS;
-    #say "Let's check \@selectedSFS array";
-    #foreach my $elem (@selectedSFS) { say "Element <$elem>" }
-    #say "-"x30;
-
     # Parse the proportions of mutants data
     my ($proporMutants_range0_1) = $file[$datasetIndex+9] =~ /Proportion .* = (\d+.\d+)/g;
     my ($proporMutants_range1_10) = $file[$datasetIndex+10] =~ /Proportion .* = (\d+.\d+)/g;
     my ($proporMutants_range10_100) = $file[$datasetIndex+11] =~ /Proportion .* = (\d+.\d+)/g;
     my ($proporMutants_range100_inf) = $file[$datasetIndex+12] =~ /Proportion .* = (\d+.\d+)/g;
-
-    # Check proportions of mutants data
-    #say "\$proporMutants_range0_1 <$proporMutants_range0_1>";
-    #say "\$proporMutants_range100_inf <$proporMutants_range100_inf>";
 
     # Save parsed data into objects
     storeDataIntoObjects($datasetNumber, $numSelectedDivSites, $numSelectedDiff, $numNeutralDivSites, $numNeutralDiff, \@selectedSFS, \@neutralSFS, $proporMutants_range0_1, $proporMutants_range1_10, $proporMutants_range10_100, $proporMutants_range100_inf);
@@ -242,12 +223,6 @@ sub storeDataIntoObjects {  #To-Do: Check num of parameters received
     $listOfObjects[$datasetNumber-1]->proporMutants_range1_10($proporMutants_range1_10);
     $listOfObjects[$datasetNumber-1]->proporMutants_range10_100($proporMutants_range10_100);
     $listOfObjects[$datasetNumber-1]->proporMutants_range100_inf($proporMutants_range100_inf);
-
-    # Checking ...
-    #say "set\nSay: \$listOfObjects[\$datasetNumber-1]->numSelectedDivSites <" . $listOfObjects[$datasetNumber-1]->numSelectedDivSites . ">";
-    #foreach my $elem ( @{ $listOfObjects[$datasetNumber-1]->selectedSFS } ) { say "\$elem <$elem>" } # Maybe this wrong
-    #say $listOfObjects[$datasetNumber-1]->proporMutants_range0_1;
-    #say "-"x30;
 }
 
 sub writeOutput {
