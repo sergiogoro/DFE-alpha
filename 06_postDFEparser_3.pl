@@ -31,7 +31,7 @@ my $file_aref = readFile($inputFile_fh); #Dereference
 my @file = @{ $file_aref };
 
 #1st parse
-my ($fileName, $chr, $chr_state, $winStart, $winEnd, $headersSep_ref, $numDatasets) = parseInitialData($inputFile_fh, \@file);
+my ($fileName, $chr, $chr_state, $parentWinStart, $parentWinEnd, $headersSep_ref, $numDatasets) = parseInitialData($inputFile_fh, \@file);
 my @headersSep = @{ $headersSep_ref }; #Dereference
 
 #Create objects
@@ -48,6 +48,7 @@ parseParamEstimates($listOfObjects_aref, $file_aref);
     #}
 
 getDatasetIndexes($file_aref, $numDatasets);
+writeOutput($outputFile_fh);
 
 
 # # # Subroutines
@@ -93,8 +94,8 @@ sub parseInitialData {
     $fileName = $1 if $fileName =~ /file (.*) emailed/;
 
     # Parse chr, xfold and chr_state
-    my ($chr, $chr_state, $winStart, $winEnd) = ($1, $2, $3, $4) if $fileName =~ /^(\w+)_(\w)_output_(\d+)-(\d+)/;
-    say "chr $chr, chr_state $chr_state, winStart $winStart, winEnd $winEnd";
+    my ($chr, $chr_state, $parentWinStart, $parentWinEnd) = ($1, $2, $3, $4) if $fileName =~ /^(\w+)_(\w)_output_(\d+)-(\d+)/;
+    say "chr $chr, chr_state $chr_state, parentWinStart $parentWinStart, parentWinEnd $parentWinEnd";
 
     # Parse $ filter headers (N1 N2 t2 f0, etc ... )
     my @headers = $file[5];
@@ -107,7 +108,7 @@ sub parseInitialData {
     my $numDatasets = first { /No. data sets \d+/ } @file; #Store line content where regex matches
     $numDatasets = $1 if ( $numDatasets =~ /No. data sets (\d+)/ ); #Keep just the number of datasets
     
-    return ($fileName, $chr, $chr_state, $winStart, $winEnd, \@headersSep, $numDatasets);
+    return ($fileName, $chr, $chr_state, $parentWinStart, $parentWinEnd, \@headersSep, $numDatasets);
 }
 
 sub setIndividualDatasets {
@@ -121,7 +122,9 @@ sub setIndividualDatasets {
             parentFilename => "$fileName",
             chromosome => "$chr",
             chr_state => "$chr_state",
-            parentWinRange => "$winStart-$winEnd",
+            parentWinRange => "$parentWinStart-$parentWinEnd",
+            parentWinStart => "$parentWinEnd",
+            parentWinEnd => "$parentWinEnd",
             datasetNumber => "$_",
             );
         push @listOfObjects, $object;
@@ -219,26 +222,43 @@ sub storeDataIntoObjects {  #To-Do: Check num of parameters received
 }
 
 sub writeOutput {
-    #
-    #
-}
+    my $outputFile_fh = shift;
+
+    # BEFORE HERE, i should correlate every datasetNumber with its original filename, to recover the original (the one for each dataset) winStart and winEnd
+
+    # Print header
+    my $header_1 = "parentFileName\tchr\tchr_state\tparentWinStart\tparentWinEnd\tdatasetNumber\tdatasetWinStart\tdatasetWinEnd\tnumSelectedDivSites\tnumSelectedDiff\tnumNeutralDivSites\tnumNeutralDiff";
+    say $outputFile_fh $header_1;
+    foreach (@listOfObjects) {
+        print $outputFile_fh $_->parentFilename . "\t";
+        print $outputFile_fh $_->chromosome . "\t";
+        print $outputFile_fh $_->chr_state . "\t";
+        print $outputFile_fh $_->parentWinStart . "\t";
+        print $outputFile_fh $_->parentWinEnd . "\t";
+        print $outputFile_fh $_->datasetNumber . "\t";
+        
+#        print $outputFile_fh $_->datasetStart . "\t";           # TO DO
+#        print $outputFile_fh $_->datasetEnd . "\t";             # TO DO
+
+        print $outputFile_fh $_->numSelectedDivSites . "\t";
+        print $outputFile_fh $_->numSelectedDiff . "\t";
+        print $outputFile_fh $_->numNeutralDivSites . "\t";
+        print $outputFile_fh $_->numNeutralDiff . "\n";    #New line
+        #print $outputFile_fh $_->numAnalyzed . "\n";   #New line
+    }
 
 
-#   #   #   #   #   #   #   #
-#
-#   #   # Print header
-#   #   my $header_1 = "fileName\tchr\txf_1\txf_2\tchr_state\tnumSelectedDivSites\tnumSelectedDiff\tnumNeutralDivSites\tnumNeutralDiff\tnumAnalyzed\t";
-#   #   print $outputFile_fh $header_1;
-#   #   #print $header_1;
+
 #   #   
 #   #   foreach (0 .. $#headersSep) {
 #   #       print $outputFile_fh "$headersSep[$_]\t";
 #   #       #print "$headersSep[$_]\t";
 #   #   }
-#   
-#
-#
-#
+    
+}
+
+
+#   #   #   #   #   #   #   #
 #   #   
 #   #   print $outputFile_fh "\n";
 #   #   my $data_1 = "$fileName\t$chr\t$xf1\t$xf2\t$chr_state\t$numSelectedDivSites\t$numSelectedDiff\t$numNeutralDivSites\t$numNeutralDiff\t$numAnalyzed\t";

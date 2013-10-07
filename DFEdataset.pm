@@ -20,10 +20,30 @@ has parentWinRange => (
     required => 1,
 );
 
+has parentWinStart => (
+    is => 'rw',
+    isa => 'Num',
+);
+
+has parentWinEnd => (
+    is => 'rw',
+    isa => 'Num',
+);
+
 # Dataset attrib.
 has datasetNumber => (
     is => 'rw',
-    isa => 'Num',
+    isa => 'Int',
+);
+
+has datasetStart => (
+    is => 'rw',
+    isa => 'Int',
+);
+
+has datasetEnd => (
+    is => 'rw',
+    isa => 'Int',
 );
 
 has chromosome => (
@@ -36,16 +56,6 @@ has chr_state => (
     is => 'rw',
     isa => 'Str',
     required => 1,
-);
-
-has winStart => (
-    is => 'rw',
-    isa => 'Num',
-);
-
-has winEnd => (
-    is => 'rw',
-    isa => 'Num',
 );
 
 has paramEstimates => (
