@@ -58,10 +58,16 @@ has chr_state => (
     required => 1,
 );
 
-has paramEstimates => (
+has paramEstimates_arr => (
     is => 'rw',
     isa => 'ArrayRef[Num]',
     default => sub { [ ] }, #Default: new anonymous array
+);
+
+has paramEstimates_hash => (
+    is => 'rw',
+    isa => 'HashRef',
+    default => sub { { } }, 
 );
 
 # Selected

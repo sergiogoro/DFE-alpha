@@ -41,11 +41,17 @@ my @listOfObjects = @{ $listOfObjects_aref }; #Dereference
 #More parsing
 parseParamEstimates($listOfObjects_aref, $file_aref);
     #checking parseParamEstimates
-    #foreach my $a (@listOfObjects) {
-    #    print @{ $a->paramEstimates };
-    #    #print Dumper \$a;
-    #    #say $a->paramEstimates;
-    #}
+    say "checking paramEstimates (in the ARRAY attrib at the objects)";
+    foreach my $object (@listOfObjects) {
+        print @{ $object->paramEstimates_arr };
+    }
+    say "checking paramEstimates (in the HASH attrib at the objects)";
+    foreach my $object (@listOfObjects) {
+        while ( my ($key, $value) = each %{ $object->paramEstimates_hash } ) {
+            print "$key=$value\n";
+        }
+        say "-"x30;
+    }
 
 getDatasetIndexes($file_aref, $numDatasets);
 writeOutput($outputFile_fh);
@@ -137,8 +143,31 @@ sub parseParamEstimates {
     my $file_aref = shift;
     my @listOfObjects = @{ $listOfObjects_aref };
     my @file = @{ $file_aref };
+    my %hash;
+    my @paramsSep;
     for (my $i=6; $i < 6+$numDatasets; $i++ ) { #Param estimates are lines from [6] to [6 + $numdatasets]
-        push @{ $listOfObjects[$i-6]->paramEstimates }, $file[$i];
+        push @{ $listOfObjects[$i-6]->paramEstimates_arr }, $file[$i];
+        
+        #Below, trying with hash, to store ALL paramEstimates into a hash (that way it'll be easier to retrieve values by their key)
+        push @paramsSep, (split " ", $file[$i]); 
+        %hash = (
+            'N1' => $paramsSep[0],
+            'N2' => $paramsSep[1],
+            't2' =>  $paramsSep[2],
+            'f0' =>  $paramsSep[3],
+            'beta' =>  $paramsSep[4],
+            'E(s)' =>  $paramsSep[5],
+            '-N*E(s)' =>  $paramsSep[6],
+            'alpha' =>  $paramsSep[7],
+            'omega_a' =>  $paramsSep[8],
+            'logL' =>  $paramsSep[9],
+            'proporMutants_range0_1' =>  $paramsSep[10],
+            'proporMutants_range1_10' =>  $paramsSep[11],
+            'proporMutants_range10_100' =>  $paramsSep[12],
+            'proporMutants_range100_inf' =>  $paramsSep[13],
+        );
+        #$listOfObjects[$i-6]->paramEstimates_hash( { 'N1' => $paramsSep[0] } );
+        $listOfObjects[$i-6]->paramEstimates_hash( \%hash  );
     }
     return 1;
 }
