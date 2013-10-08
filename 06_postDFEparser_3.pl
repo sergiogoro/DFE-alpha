@@ -8,19 +8,20 @@ use DFEdataset;
 
 # # # Globar vars
 my $help = undef;
-my $inputFile;
+my ($inputFile, $indexFile);
 
 # # # Main
 usage() if (
-    @ARGV < 1 or
+    @ARGV < 2 or
     !GetOptions(
     'help|h|?'  =>  \$help,
     'input=s'   =>  \$inputFile,
+    'index=s'   =>  \$indexFile,
     ) or defined $help);
 
 #Open input
-my $inputFile_fh_ref = openInput($inputFile);
-my $inputFile_fh = $$inputFile_fh_ref; #Dereference
+my $inputFile_fh = openInput($inputFile);
+my $indexFile_fh = openInput($indexFile);
 
 #Open output
 my $outputFile_fh_ref = openOutput($inputFile);
@@ -40,30 +41,20 @@ my @listOfObjects = @{ $listOfObjects_aref }; #Dereference
 
 #More parsing
 parseParamEstimates($listOfObjects_aref, $file_aref);
-    #checking parseParamEstimates
-    say "checking paramEstimates (in the ARRAY attrib at the objects)";
-    foreach my $object (@listOfObjects) {
-        print @{ $object->paramEstimates_arr };
-    }
-    say "checking paramEstimates (in the HASH attrib at the objects)";
-    foreach my $object (@listOfObjects) {
-        while ( my ($key, $value) = each %{ $object->paramEstimates_hash } ) {
-            print "$key=$value\n";
-        }
-        say "-"x30;
-    }
-
 getDatasetIndexes($file_aref, $numDatasets);
+
+relateWithOriginalDataset($indexFile_fh, $listOfObjects_aref);
+
 writeOutput($outputFile_fh);
 
 
 # # # Subroutines
-sub usage {say "Usage: $0 -input <input file> [-help]"};
+sub usage {say "Usage: $0 -input <input file> -index <index file> [-help]"; exit};
 
 sub openInput {
     my $inputFile = shift;
     open (my $inputFile_fh, "<", "$inputFile") or die "Couldn't open $inputFile $!";
-    return (\$inputFile_fh);
+    return ($inputFile_fh);
 }
 
 sub openOutput {
@@ -101,7 +92,7 @@ sub parseInitialData {
 
     # Parse chr, xfold and chr_state
     my ($chr, $chr_state, $parentWinStart, $parentWinEnd) = ($1, $2, $3, $4) if $fileName =~ /^(\w+)_(\w)_output_(\d+)-(\d+)/;
-    say "chr $chr, chr_state $chr_state, parentWinStart $parentWinStart, parentWinEnd $parentWinEnd";
+    #say "chr $chr, chr_state $chr_state, parentWinStart $parentWinStart, parentWinEnd $parentWinEnd";
 
     # Parse $ filter headers (N1 N2 t2 f0, etc ... )
     my @headers = $file[5];
@@ -143,8 +134,9 @@ sub parseParamEstimates {
     my %hash;
     my @paramsSep;
     for (my $i=6; $i < 6+$numDatasets; $i++ ) { #Param estimates are lines from [6] to [6 + $numdatasets]
+    # Option A: store into array paramEstimates_arr
         push @{ $listOfObjects[$i-6]->paramEstimates_arr }, $file[$i];
-        
+    # Option B: store into hash paramEstimates_hash
         #Below, trying with hash, to store ALL paramEstimates into a hash (that way it'll be easier to retrieve values by their key)
         push @paramsSep, (split " ", $file[$i]); 
         %hash = (
@@ -184,22 +176,22 @@ sub parseIndividualDataset {
     my @file = @{ $file_aref };
     
     # Parse the sites data
-    my ($numSelectedDivSites) = $file[ eval($datasetIndex+1) ] =~ m/selected divergence sites (\d+)/g;
-    my ($numSelectedDiff) = $file[ eval($datasetIndex+1) ] =~ m/selected differences (\d+)/g;
-    my ($numNeutralDivSites) = $file[ eval($datasetIndex+2) ] =~ m/neutral divergence sites (\d+)/g;
-    my ($numNeutralDiff) = $file[ eval($datasetIndex+2) ] =~ m/neutral differences (\d+)/g;
-    my $selectedSFS = $1 if ( $file[$datasetIndex+4] =~ /Selected SFS: (.*)/g );
+    my ($numSelectedDivSites) = $file[ $datasetIndex+1 ] =~ /selected divergence sites (\d+)/g;
+    my ($numSelectedDiff) = $file[ $datasetIndex+1 ] =~ /selected differences (\d+)/g;
+    my ($numNeutralDivSites) = $file[ $datasetIndex+2 ] =~ /neutral divergence sites (\d+)/g;
+    my ($numNeutralDiff) = $file[ $datasetIndex+2 ] =~ /neutral differences (\d+)/g;
+    my $selectedSFS = $1 if ( $file[ $datasetIndex+4 ] =~ /Selected SFS: (.*)/g );
     my @selectedSFS;
     push @selectedSFS, split " ", $selectedSFS;
-    my $neutralSFS = $1 if ( $file[$datasetIndex+5] =~ /Neutral SFS: (.*)/g );
+    my $neutralSFS = $1 if ( $file[ $datasetIndex+5 ] =~ /Neutral SFS: (.*)/g );
     my @neutralSFS;
     push @neutralSFS, split " ", $neutralSFS;
 
     # Parse the proportions of mutants data
-    my ($proporMutants_range0_1) = $file[$datasetIndex+9] =~ /Proportion .* = (\d+.\d+)/g;
-    my ($proporMutants_range1_10) = $file[$datasetIndex+10] =~ /Proportion .* = (\d+.\d+)/g;
-    my ($proporMutants_range10_100) = $file[$datasetIndex+11] =~ /Proportion .* = (\d+.\d+)/g;
-    my ($proporMutants_range100_inf) = $file[$datasetIndex+12] =~ /Proportion .* = (\d+.\d+)/g;
+    my ($proporMutants_range0_1) = $file[ $datasetIndex+9 ] =~ /Proportion .* = (\d+.\d+)/g;
+    my ($proporMutants_range1_10) = $file[ $datasetIndex+10 ] =~ /Proportion .* = (\d+.\d+)/g;
+    my ($proporMutants_range10_100) = $file[ $datasetIndex+11 ] =~ /Proportion .* = (\d+.\d+)/g;
+    my ($proporMutants_range100_inf) = $file[ $datasetIndex+12 ] =~ /Proportion .* = (\d+.\d+)/g;
 
     # Save parsed data into objects
     storeDataIntoObjects($datasetNumber, $numSelectedDivSites, $numSelectedDiff, $numNeutralDivSites, $numNeutralDiff, \@selectedSFS, \@neutralSFS, $proporMutants_range0_1, $proporMutants_range1_10, $proporMutants_range10_100, $proporMutants_range100_inf);
@@ -209,20 +201,85 @@ sub storeDataIntoObjects {  #To-Do: Check num of parameters received
     my ($datasetNumber, $numSelectedDivSites, $numSelectedDiff, $numNeutralDivSites, $numNeutralDiff, $selectedSFS_aref, $neutralSFS_aref, $proporMutants_range0_1, $proporMutants_range1_10, $proporMutants_range10_100, $proporMutants_range100_inf) = @_;
 
     # Saving data into corresponding attributes of the objects
-    $listOfObjects[$datasetNumber-1]->numSelectedDivSites( $numSelectedDivSites );
-    $listOfObjects[$datasetNumber-1]->numSelectedDiff( $numSelectedDiff );
-    $listOfObjects[$datasetNumber-1]->numNeutralDivSites( $numNeutralDivSites );
-    $listOfObjects[$datasetNumber-1]->numNeutralDiff( $numNeutralDiff );
+    $listOfObjects[ $datasetNumber-1 ]->numSelectedDivSites( $numSelectedDivSites );
+    $listOfObjects[ $datasetNumber-1 ]->numSelectedDiff( $numSelectedDiff );
+    $listOfObjects[ $datasetNumber-1 ]->numNeutralDivSites( $numNeutralDivSites );
+    $listOfObjects[ $datasetNumber-1 ]->numNeutralDiff( $numNeutralDiff );
 
     # Saving data (selected and neutral SFS vectors) into their corresponding attributes (selectedSFS and neutralSFS; with type: ArrayRef[Int]) of the objects
-    $listOfObjects[$datasetNumber-1]->selectedSFS( $selectedSFS_aref ); #We save the arrayReferences (and not the array themselves), as that's the data type declared in the module (DFEdataset.pm)
-    $listOfObjects[$datasetNumber-1]->neutralSFS( $neutralSFS_aref );
+    $listOfObjects[ $datasetNumber-1 ]->selectedSFS( $selectedSFS_aref ); #We save the arrayReferences (and not the array themselves), as that's the data type declared in the module (DFEdataset.pm)
+    $listOfObjects[ $datasetNumber-1 ]->neutralSFS( $neutralSFS_aref );
 
-    #Saving data (proportion of mutants)
-    $listOfObjects[$datasetNumber-1]->proporMutants_range0_1($proporMutants_range0_1);
-    $listOfObjects[$datasetNumber-1]->proporMutants_range1_10($proporMutants_range1_10);
-    $listOfObjects[$datasetNumber-1]->proporMutants_range10_100($proporMutants_range10_100);
-    $listOfObjects[$datasetNumber-1]->proporMutants_range100_inf($proporMutants_range100_inf);
+    # Saving data (proportion of mutants)
+    $listOfObjects[ $datasetNumber-1 ]->proporMutants_range0_1($proporMutants_range0_1);
+    $listOfObjects[ $datasetNumber-1 ]->proporMutants_range1_10($proporMutants_range1_10);
+    $listOfObjects[ $datasetNumber-1 ]->proporMutants_range10_100($proporMutants_range10_100);
+    $listOfObjects[ $datasetNumber-1 ]->proporMutants_range100_inf($proporMutants_range100_inf);
+    
+    # Checking ...
+    #say $listOfObjects[ $datasetNumber-1 ]->parentFilename;
+}
+
+sub relateWithOriginalDataset {
+    my ( $indexFile_fh, $listOfObjects_aref ) = @_;
+    my @listOfObjects = @{ $listOfObjects_aref };
+    my ( $parentFilenameFromObject, $chromStateIndex, $chromStateObject );
+
+    foreach my $object (@listOfObjects) { # For every object
+        $parentFilenameFromObject = $object->parentFilename;
+        ($chromStateObject) = $parentFilenameFromObject =~ /(\w_\w|\w\w_\w)/;
+        say "\$chromStateObject <$chromStateObject>";
+        say "datasetnumber " . $object->datasetNumber;
+        # Open index and search
+        while (my $line = <$indexFile_fh>) {
+            chomp $line;
+            my @wins_0_20;
+            my @wins_20_40;
+            my @wins_40_60;
+            my ($wins_0_20, $wins_20_40, $wins_40_60);
+            next unless ( $line =~ /name:.*/);  #Skip line, if it's not name line
+
+            $chromStateIndex = "$1_$2" if ( $line =~ /name: (\w|\w\w).orth.\d\w\d.(\w).SFSK/ );
+            say "\$chromStateIndex <$chromStateIndex>";
+            while ( $chromStateIndex eq $chromStateObject ) { 
+                $wins_0_20 = <$indexFile_fh>;    # Jump to next line (wins 0_20: )
+                $wins_20_40 = <$indexFile_fh>;    # Jump to next line (wins 20_40: )
+                $wins_40_60 = <$indexFile_fh>;    # Jump to next line (wins 40_60: )
+
+                # Clean the vars (from fields: wins 0_20; 0_20), before pushing them into the arrays
+                $wins_0_20 =~ s/wins//;
+                $wins_0_20 =~ s/.*://;
+                $wins_20_40 =~ s/wins//;
+                $wins_20_40 =~ s/.*://;
+                $wins_40_60 =~ s/wins//;
+                $wins_40_60 =~ s/.*://;
+
+                push @wins_0_20, (split " ", $wins_0_20);
+                push @wins_20_40, (split " ", $wins_20_40);
+                push @wins_40_60, (split " ", $wins_40_60);
+
+                last;
+            }
+            #say "foreach \@wins_0_20";
+            #foreach (@wins_0_20) {say}
+            #say "foreach \@wins_20_40";
+            #foreach (@wins_20_40) {say}
+            #say "foreach \@wins_40_60";
+            #foreach (@wins_40_60) {say}
+
+            #   store win info of each dataset into each dataset object
+            # Bear in mind datasetnumber!!
+            my $datasetNumber = $object->datasetNumber;
+            my ($datasetStart, $datasetEnd) = split "-", $wins_0_20[ $datasetNumber-1 ];
+            say "\$datasetStart <$datasetStart>";
+            say "\$datasetEnd <$datasetEnd>";
+
+            $object->datasetStart($datasetStart);
+            $object->datasetEnd($datasetEnd);
+            last;
+
+        }   #Ends while line indexFile
+    }   #Ends foreach object
 }
 
 sub writeOutput {
