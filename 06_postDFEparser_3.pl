@@ -228,8 +228,8 @@ sub relateWithOriginalDataset {
     foreach my $object (@listOfObjects) { # For every object
         $parentFilenameFromObject = $object->parentFilename;
         ($chromStateObject) = $parentFilenameFromObject =~ /(\w_\w|\w\w_\w)/;
-        say "\$chromStateObject <$chromStateObject>";
         say "datasetnumber " . $object->datasetNumber;
+        say "\$chromStateObject <$chromStateObject>";
         # Open index and search
         while (my $line = <$indexFile_fh>) {
             chomp $line;
@@ -247,39 +247,48 @@ sub relateWithOriginalDataset {
                 $wins_40_60 = <$indexFile_fh>;    # Jump to next line (wins 40_60: )
 
                 # Clean the vars (from fields: wins 0_20; 0_20), before pushing them into the arrays
-                $wins_0_20 =~ s/wins//;
-                $wins_0_20 =~ s/.*://;
-                $wins_20_40 =~ s/wins//;
-                $wins_20_40 =~ s/.*://;
-                $wins_40_60 =~ s/wins//;
-                $wins_40_60 =~ s/.*://;
+                if ( (defined $wins_0_20) or (defined $wins_20_40) or (defined $wins_40_60) ) {
+                    $wins_0_20 =~ s/wins//;
+                    $wins_0_20 =~ s/.*://;
+                    $wins_20_40 =~ s/wins//;
+                    $wins_20_40 =~ s/.*://;
+                    $wins_40_60 =~ s/wins//;
+                    $wins_40_60 =~ s/.*://;
 
-                push @wins_0_20, (split " ", $wins_0_20);
-                push @wins_20_40, (split " ", $wins_20_40);
-                push @wins_40_60, (split " ", $wins_40_60);
-
+                    push @wins_0_20, (split " ", $wins_0_20);
+                    push @wins_20_40, (split " ", $wins_20_40);
+                    push @wins_40_60, (split " ", $wins_40_60);
+                    say "just pushed $wins_0_20";
+                    say "just pushed $wins_20_40";
+                    say "just pushed $wins_40_60";
+                }
                 last;
             }
-            #say "foreach \@wins_0_20";
-            #foreach (@wins_0_20) {say}
-            #say "foreach \@wins_20_40";
-            #foreach (@wins_20_40) {say}
-            #say "foreach \@wins_40_60";
-            #foreach (@wins_40_60) {say}
-
-            #   store win info of each dataset into each dataset object
-            # Bear in mind datasetnumber!!
+            # Store win info of each dataset into each dataset object
             my $datasetNumber = $object->datasetNumber;
-            my ($datasetStart, $datasetEnd) = split "-", $wins_0_20[ $datasetNumber-1 ];
+            my ($datasetStart, $datasetEnd);
+            if ( $datasetNumber <= 20 ) {               # ALSO CHECK FOR DEFINED $wins_0_20
+                say "voy:";
+                say "\$datasetNumber <$datasetNumber>";
+                say $wins_0_20[0];
+                say $wins_0_20[1];
+                say $wins_0_20[2];
+                say $wins_0_20[3];
+                ($datasetStart, $datasetEnd) = split "-", $wins_0_20[ $datasetNumber-1 ];
+            } elsif ( ($datasetNumber > 20) and ($datasetNumber <= 40) ) {
+                ($datasetStart, $datasetEnd) = split "-", $wins_20_40[ $datasetNumber-1 ];
+            } else {
+                ($datasetStart, $datasetEnd) = split "-", $wins_40_60[ $datasetNumber-1 ];
+            }
             say "\$datasetStart <$datasetStart>";
             say "\$datasetEnd <$datasetEnd>";
 
             $object->datasetStart($datasetStart);
             $object->datasetEnd($datasetEnd);
-            last;
+            #last;
 
-        }   #Ends while line indexFile
-    }   #Ends foreach object
+        }
+    }
 }
 
 sub writeOutput {
@@ -298,8 +307,8 @@ sub writeOutput {
         print $outputFile_fh $_->parentWinEnd . "\t";
         print $outputFile_fh $_->datasetNumber . "\t";
         
-#        print $outputFile_fh $_->datasetStart . "\t";           # TO DO
-#        print $outputFile_fh $_->datasetEnd . "\t";             # TO DO
+        print $outputFile_fh $_->datasetStart . "\t";
+        print $outputFile_fh $_->datasetEnd . "\t";
 
         print $outputFile_fh $_->numSelectedDivSites . "\t";
         print $outputFile_fh $_->numSelectedDiff . "\t";
