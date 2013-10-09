@@ -235,58 +235,64 @@ sub relateWithOriginalDataset {
             /x
             )
         {
+            $chromStateIndex = $1;
+            say "\$chromStateIndex <$chromStateIndex>";
+            foreach my $object ( @listOfObjects ) {
+                ($chromStateObject) = $object->parentFilename =~ /(\w\w?_\w)/;
+                say "\$chromStateObject <$chromStateObject>";
+                if ($chromStateObject eq $chromStateIndex) {
+                    my (@wins_0_20, @wins_20_40, @wins_40_60);
+                    say "\tObj <$chromStateObject> eq Index <$chromStateIndex>";
+                    #$line = <$indexFile_fh>;
+                    #$line = <$indexFile_fh>;
+                    #Wins 0_20
+                    {
+                        my $line2 = <$indexFile_fh>;
+                        my $line3 = <$indexFile_fh>;
+                        my @temp = split " ", $line3;
+                        say "chivo temp";
+                        say "<<$_>>" foreach (@temp);
+                        for my $a ( 2 .. $#temp ) {
+                            push @wins_0_20, $temp[$a];
+                        }
+                    }
+                    #Wins 20_40
+                    {
+                        my @temp = split " ", $line;
+                        for my $a ( 2 .. $#temp ) {
+                            push @wins_20_40, $temp[$a];
+                        }
+                    }
+                    #Wins 40_60
+                    {
+                        my @temp = split " ", $line;
+                        for my $a ( 2 .. $#temp ) {
+                            push @wins_40_60, $temp[$a];
+                        }
+                    }
+                    # Store
+                    my $datasetNumber = $object->datasetNumber;
+                    my ($datasetStart, $datasetEnd);
+                    say "fuera if \$datasetNumber <$datasetNumber>";
+                    if ( $datasetNumber <= 20 ) {
+                        say "dentro if, antes split: \$wins_0_20[\$datasetNumber-1] <" . $wins_0_20[$datasetNumber-1] . ">";
+                        ($datasetStart, $datasetEnd) = split "-", $wins_0_20[ $datasetNumber-1 ];
+                        say "dentro if " . $datasetStart . "<->" . $datasetEnd;
+                    }
+
+                } # Ends if chromStateObject eq chromStateIndex
+                say "-"x10;
+                say "parentFilename " . $object->parentFilename;
+                say "datasetNumber " . $object->datasetNumber;
+                #say "datasetStart " . $object->datasetStart;
+                #say "datasetEnd " . $object->datasetEnd;
+                say "-"x10;
+            } # Ends foreach object
 
         } # Ends if $line match chromState
 
     } # Ends while
 
-    #foreach my $object (@listOfObjects) { # For every object
-    #    ($chromStateObject) = $object->parentFilename =~ /(\w_\w|\w\w_\w)/;
-    #    say "datasetnumber " . $object->datasetNumber;
-    #    say "\$chromStateObject <$chromStateObject>";
-    #    my (@wins_0_20, @wins_20_40, @wins_40_60);
-    #    # Open index and search
-    #    while (my $line = <$indexFile_fh>) {
-    #        chomp $line;
-    #        if (
-    #            $line =~ /
-    #            ^chromState:
-    #            \s
-    #            ( \w\w?_\w ) #Will match 2L_A as well as X_A
-    #            /x
-    #            )
-    #        {
-    #            $chromStateIndex = "$1";
-    #            say "index <$chromStateIndex>";
-    #            if ( $chromStateIndex eq $chromStateObject) {
-    #                say "\$chromStateObject <$chromStateObject>\t=\t\$chromStateIndex <$chromStateIndex>";
-    #                $line = <$indexFile_fh>;    # Reads next line
-    #                $line = <$indexFile_fh>;    # Reads next line
-    #                # Wins 0_20
-    #                {
-    #                my @temp = split " ", $line;    #Store all windows ( Includes the "header" (wins 0_20:) )
-    #                for my $a ( 2 .. $#temp ) {     #Store just the values. Excluding positionsi [0] (wins) and [1] (0_20:)
-    #                    push @wins_0_20, $temp[$a];
-    #                }
-    #                }
-    #                $line = <$indexFile_fh>;
-    #                # Wins 20_40
-    #                {
-    #                my @temp = split " ", $line;    #Store all windows ( Includes the "header" (wins 0_20:) )
-    #                for my $a ( 2 .. $#temp ) {     #Store just the values. Excluding positionsi [0] (wins) and [1] (0_20:)
-    #                    push @wins_20_40, $temp[$a];
-    #                }
-    #                }
-    #                $line = <$indexFile_fh>;
-    #                # Wins 40_60
-    #                {
-    #                my @temp = split " ", $line;    #Store all windows ( Includes the "header" (wins 0_20:) )
-    #                for my $a ( 2 .. $#temp ) {     #Store just the values. Excluding positionsi [0] (wins) and [1] (0_20:)
-    #                    push @wins_40_60, $temp[$a];
-    #                }
-    #                }
-    #            }
-    #        }
 
     #        last if ( $chromStateIndex ne $chromStateObject );
 
