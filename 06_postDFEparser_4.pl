@@ -117,7 +117,7 @@ sub setIndividualDatasets {
             chromosome => "$chr",
             chr_state => "$chr_state",
             parentWinRange => "$parentWinStart-$parentWinEnd",
-            parentWinStart => "$parentWinEnd",
+            parentWinStart => "$parentWinStart",
             parentWinEnd => "$parentWinEnd",
             datasetNumber => "$_",
             );
@@ -226,88 +226,81 @@ sub relateWithOriginalDataset {
     my ( $parentFilenameFromObject, $chromStateIndex, $chromStateObject );
 
     foreach my $object (@listOfObjects) { # For every object
-        $parentFilenameFromObject = $object->parentFilename;
-        ($chromStateObject) = $parentFilenameFromObject =~ /(\w_\w|\w\w_\w)/;
+        ($chromStateObject) = $object->parentFilename =~ /(\w_\w|\w\w_\w)/;
         say "datasetnumber " . $object->datasetNumber;
-        #say "\$chromStateObject <$chromStateObject>";
+        say "\$chromStateObject <$chromStateObject>";
+        my (@wins_0_20, @wins_20_40, @wins_40_60);
         # Open index and search
         while (my $line = <$indexFile_fh>) {
             chomp $line;
-            my @wins_0_20;
-            my @wins_20_40;
-            my @wins_40_60;
-            my ($wins_0_20, $wins_20_40, $wins_40_60);
-            unless ( $line =~ /name:.*/ ) {  #Skip line, if it's not name line
-                $line = <$indexFile_fh>;
-            }
-            #($chromStateIndex, $wins_0_20, $wins_20_40, $wins_40_60) = ("$1_$2", $3, $4, $5) if ( ($line =~ /name: (\w|\w\w).orth.\d\w\d.(\w).SFSK.*\nwins 0_20: (\d-\d)*\nwins 20_40: (\d-\d)*\nwins_40_60: (\d-\d)*/g) );
-            if ( $line =~ /^name: (\w\w?)\.orth\.\d\w\d\.(\w)\.SFSK.*/) {
-                $chromStateIndex = "$1_$2";
+            if (
+                $line =~ /
+                ^chromState:
+                \s
+                ( \w\w?_\w ) #Will match 2L_A as well as X_A
+                /x
+                )
+            {
+                $chromStateIndex = "$1";
+                say "index <$chromStateIndex>";
                 if ( $chromStateIndex eq $chromStateObject) {
-                    say "\$chromStateObject <$chromStateObject>\t\$chromStateIndex <$chromStateIndex>";
-                    $line = <$indexFile_fh>;    #Reads next line
+                    say "\$chromStateObject <$chromStateObject>\t=\t\$chromStateIndex <$chromStateIndex>";
+                    $line = <$indexFile_fh>;    # Reads next line
+                    $line = <$indexFile_fh>;    # Reads next line
+                    # Wins 0_20
+                    {
                     my @temp = split " ", $line;    #Store all windows ( Includes the "header" (wins 0_20:) )
-                    #if ( $line =~ /^wins\s0_20\: (\s \d+ - \d+ \s)+ /xg ) {
-                    #    push @wins_0_20, $1;
-                    #    $wins_0_20 = $1;
-                    #    say "Match on wins 0 20";
-                    #    say "\$wins_0_20 <$wins_0_20>";
-                    #}
                     for my $a ( 2 .. $#temp ) {     #Store just the values. Excluding positionsi [0] (wins) and [1] (0_20:)
                         push @wins_0_20, $temp[$a];
                     }
+                    }
+                    $line = <$indexFile_fh>;
+                    # Wins 20_40
+                    {
+                    my @temp = split " ", $line;    #Store all windows ( Includes the "header" (wins 0_20:) )
+                    for my $a ( 2 .. $#temp ) {     #Store just the values. Excluding positionsi [0] (wins) and [1] (0_20:)
+                        push @wins_20_40, $temp[$a];
+                    }
+                    }
+                    $line = <$indexFile_fh>;
+                    # Wins 40_60
+                    {
+                    my @temp = split " ", $line;    #Store all windows ( Includes the "header" (wins 0_20:) )
+                    for my $a ( 2 .. $#temp ) {     #Store just the values. Excluding positionsi [0] (wins) and [1] (0_20:)
+                        push @wins_40_60, $temp[$a];
+                    }
+                    }
                 }
             }
-            say foreach (@wins_0_20);
 
             last if ( $chromStateIndex ne $chromStateObject );
 
-
-            #say "\$chromStateIndex <$chromStateIndex>";
-            #while ( $chromStateIndex eq $chromStateObject ) { 
-            #    $wins_0_20 = <$indexFile_fh>;    # Jump to next line (wins 0_20: )
-            #    $wins_20_40 = <$indexFile_fh>;    # Jump to next line (wins 20_40: )
-            #    $wins_40_60 = <$indexFile_fh>;    # Jump to next line (wins 40_60: )
-
-            #    # Clean the vars (from fields: wins 0_20; 0_20), before pushing them into the arrays
-            #    if ( (defined $wins_0_20) or (defined $wins_20_40) or (defined $wins_40_60) ) {
-            #        $wins_0_20 =~ s/wins//;
-            #        $wins_0_20 =~ s/.*://;
-            #        $wins_20_40 =~ s/wins//;
-            #        $wins_20_40 =~ s/.*://;
-            #        $wins_40_60 =~ s/wins//;
-            #        $wins_40_60 =~ s/.*://;
-
-            #        push @wins_0_20, (split " ", $wins_0_20);
-            #        push @wins_20_40, (split " ", $wins_20_40);
-            #        push @wins_40_60, (split " ", $wins_40_60);
-            #        say "just pushed $wins_0_20";
-            #        say "just pushed $wins_20_40";
-            #        say "just pushed $wins_40_60";
-            #    }
-            #    last;
-            #}
             # Store win info of each dataset into each dataset object
-#            my $datasetNumber = $object->datasetNumber;
-#            my ($datasetStart, $datasetEnd);
-#            if ( (defined $wins_0_20) or (defined $wins_20_40) or (defined $wins_40_60) ) {
-#                if ( $datasetNumber <= 20 ) {               # ALSO CHECK FOR DEFINED $wins_0_20
-#                    ($datasetStart, $datasetEnd) = split "-", $wins_0_20[ $datasetNumber-1 ];
-#                    say "Dentro if, $datasetStart - $datasetEnd";
-#                } elsif ( ($datasetNumber > 20) and ($datasetNumber <= 40) ) {
-#                    ($datasetStart, $datasetEnd) = split "-", $wins_20_40[ $datasetNumber-1 ];
-#                    say "Dentro if, $datasetStart - $datasetEnd";
-#                } else {
-#                    ($datasetStart, $datasetEnd) = split "-", $wins_40_60[ $datasetNumber-1 ];
-#                    say "Dentro if, $datasetStart - $datasetEnd";
-#                }
-#                say "\$datasetStart <$datasetStart>";
-#                say "\$datasetEnd <$datasetEnd>";
-#
-#                $object->datasetStart($datasetStart);
-#                $object->datasetEnd($datasetEnd);
-#                #last;
-#            }
+            my $datasetNumber = $object->datasetNumber;
+            my ($datasetStart, $datasetEnd);
+
+            if ( $datasetNumber <= 20 ) {               # ALSO CHECK FOR DEFINED $wins_0_20
+                ($datasetStart, $datasetEnd) = split "-", $wins_0_20[ $datasetNumber-1 ];
+                say "Dentro if, Dataset $datasetNumber: $datasetStart - $datasetEnd";
+                say "Dentro if, parentFilename" . $object->parentFilename;
+            } elsif ( ($datasetNumber > 20) and ($datasetNumber <= 40) ) {
+                ($datasetStart, $datasetEnd) = split "-", $wins_20_40[ $datasetNumber-1 ];
+                say "Dentro if, Dataset $datasetNumber: $datasetStart - $datasetEnd";
+            } else {
+                ($datasetStart, $datasetEnd) = split "-", $wins_40_60[ $datasetNumber-1 ];
+                say "Dentro if, Dataset $datasetNumber: $datasetStart - $datasetEnd";
+            }
+
+            # HERE!
+            # Check we are inserting $datasetStart and $datasetEnd into the objects ob corresponding datasetNumber
+
+            $object->datasetStart($datasetStart);
+            say "guardo start <$datasetStart>";
+            $object->datasetEnd($datasetEnd);
+            say "guardo end <$datasetEnd>";
+            say "Fin procesamiento, Resumen:";
+            say "Dataset " . $object->datasetNumber . "\tstart $datasetStart\tend $datasetEnd";
+            say "-"x30;
         }
     }
 }
