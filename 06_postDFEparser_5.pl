@@ -54,7 +54,7 @@ sub usage {say "Usage: $0 -input <input file> -index <index file> [-help]"; exit
 sub openInput {
     my $inputFile = shift;
     open (my $inputFile_fh, "<", "$inputFile") or die "Couldn't open $inputFile $!";
-    return ($inputFile_fh);
+    return $inputFile_fh;
 }
 
 sub openOutput {
