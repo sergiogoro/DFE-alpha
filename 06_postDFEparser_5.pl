@@ -229,127 +229,47 @@ sub relateWithOriginalDataset {
 
     while (my $line = <$indexFile_fh>) {
         chomp $line;
+        my (@wins_0_20, @wins_20_40, @wins_40_60);
+        my (@wins_start, @wins_end);
         foreach my $object ( @listOfObjects ) {
+            my $datasetNumberObject = $object->datasetNumber;
             my ($chromStateObject) = $object->parentFilename =~ /(\w\w?_\w)/;
             if (
-                $line =~ /
-                $chromStateObject
-                .*
-                /x
+                (
+                    $line =~ /
+                    $chromStateObject
+                    .*
+                    /x
+                ) and (
+                    $line =~ /
+                    \b  #Word boundary
+                    $datasetNumberObject
+                    \b
+                    /x
                 )
+               )
             {
-                say "Match en linea <$line>";
-                
+                my @temp = split " ", $line;
+                my $winStart = $temp[2];
+                my $winEnd = $temp[3];
 
+                # Store
+                $object->datasetStart($winStart);
+                $object->datasetEnd($winEnd);
+
+                # Checking ...
+                #say "Match en linea <$line>";
+                #say "start $winStart\tend $winEnd";
+                #say "[Object] DatasetNumber: " . $object->datasetNumber;
+                #say "[Object] st-end: " . $object->datasetStart . "-" . $object->datasetEnd;
 
             } # Ends if line match chromState
-
         } # Ends foreach object
-
-
-
-        #   if (
-        #       $line =~ /
-        #       $chromStateObject
-        #       .*
-        #       /x
-        #       )
-        #   {
-        #       say "Si, match!";
-        #       $chromStateIndex = $1;
-        #       say "\$chromStateIndex <$chromStateIndex>";
-        #       foreach my $object ( @listOfObjects ) {
-        #           say "\$chromStateObject <$chromStateObject>";
-        #           if ($chromStateObject eq $chromStateIndex) {
-        #               my (@wins_0_20, @wins_20_40, @wins_40_60);
-        #               say "\tObj <$chromStateObject> eq Index <$chromStateIndex>";
-        #               #$line = <$indexFile_fh>;
-        #               #$line = <$indexFile_fh>;
-        #               #Wins 0_20
-        #               {
-        #                   my $line2 = <$indexFile_fh>;
-        #                   my $line3 = <$indexFile_fh>;
-        #                   my @temp = split " ", $line3;
-        #                   say "chivo temp";
-        #                   say "<<$_>>" foreach (@temp);
-        #                   for my $a ( 2 .. $#temp ) {
-        #                       push @wins_0_20, $temp[$a];
-        #                   }
-        #               }
-        #               #Wins 20_40
-        #               {
-        #                   my @temp = split " ", $line;
-        #                   for my $a ( 2 .. $#temp ) {
-        #                       push @wins_20_40, $temp[$a];
-        #                   }
-        #               }
-        #               #Wins 40_60
-        #               {
-        #                   my @temp = split " ", $line;
-        #                   for my $a ( 2 .. $#temp ) {
-        #                       push @wins_40_60, $temp[$a];
-        #                   }
-        #               }
-        #               # Store
-        #               my $datasetNumber = $object->datasetNumber;
-        #               my ($datasetStart, $datasetEnd);
-        #               say "fuera if \$datasetNumber <$datasetNumber>";
-        #               if ( $datasetNumber <= 20 ) {
-        #                   say "dentro if, antes split: \$wins_0_20[\$datasetNumber-1] <" . $wins_0_20[$datasetNumber-1] . ">";
-        #                   ($datasetStart, $datasetEnd) = split "-", $wins_0_20[ $datasetNumber-1 ];
-        #                   say "dentro if " . $datasetStart . "<->" . $datasetEnd;
-        #               }
-
-        #           } # Ends if chromStateObject eq chromStateIndex
-        #           say "-"x10;
-        #           say "parentFilename " . $object->parentFilename;
-        #           say "datasetNumber " . $object->datasetNumber;
-        #           #say "datasetStart " . $object->datasetStart;
-        #           #say "datasetEnd " . $object->datasetEnd;
-        #           say "-"x10;
-        #       } # Ends foreach object
-
-        #   } # Ends if $line match chromState
-
     } # Ends while
-
-
-    #        last if ( $chromStateIndex ne $chromStateObject );
-
-    #        # Store win info of each dataset into each dataset object
-    #        my $datasetNumber = $object->datasetNumber;
-    #        my ($datasetStart, $datasetEnd);
-
-    #        if ( $datasetNumber <= 20 ) {               # ALSO CHECK FOR DEFINED $wins_0_20
-    #            ($datasetStart, $datasetEnd) = split "-", $wins_0_20[ $datasetNumber-1 ];
-    #            say "Dentro if, Dataset $datasetNumber: $datasetStart - $datasetEnd";
-    #            say "Dentro if, parentFilename" . $object->parentFilename;
-    #        } elsif ( ($datasetNumber > 20) and ($datasetNumber <= 40) ) {
-    #            ($datasetStart, $datasetEnd) = split "-", $wins_20_40[ $datasetNumber-1 ];
-    #            say "Dentro if, Dataset $datasetNumber: $datasetStart - $datasetEnd";
-    #        } else {
-    #            ($datasetStart, $datasetEnd) = split "-", $wins_40_60[ $datasetNumber-1 ];
-    #            say "Dentro if, Dataset $datasetNumber: $datasetStart - $datasetEnd";
-    #        }
-
-    #        # HERE!
-    #        # Check we are inserting $datasetStart and $datasetEnd into the objects ob corresponding datasetNumber
-
-    #        $object->datasetStart($datasetStart);
-    #        say "guardo start <$datasetStart>";
-    #        $object->datasetEnd($datasetEnd);
-    #        say "guardo end <$datasetEnd>";
-    #        say "Fin procesamiento, Resumen:";
-    #        say "Dataset " . $object->datasetNumber . "\tstart $datasetStart\tend $datasetEnd";
-    #        say "-"x30;
-    #    }
-    #}  # Ends foreach my object
 }
 
 sub writeOutput {
     my $outputFile_fh = shift;
-
-    # BEFORE HERE, i should correlate every datasetNumber with its original filename, to recover the original (the one for each dataset) winStart and winEnd
 
     # Print header
     my $header_1 = "parentFileName\tchr\tchr_state\tparentWinStart\tparentWinEnd\tdatasetNumber\tdatasetWinStart\tdatasetWinEnd\tnumSelectedDivSites\tnumSelectedDiff\tnumNeutralDivSites\tnumNeutralDiff";
@@ -361,7 +281,7 @@ sub writeOutput {
         print $outputFile_fh $_->parentWinStart . "\t";
         print $outputFile_fh $_->parentWinEnd . "\t";
         print $outputFile_fh $_->datasetNumber . "\t";
-        
+
         print $outputFile_fh $_->datasetStart . "\t";
         print $outputFile_fh $_->datasetEnd . "\t";
 
@@ -371,33 +291,5 @@ sub writeOutput {
         print $outputFile_fh $_->numNeutralDiff . "\n";    #New line
         #print $outputFile_fh $_->numAnalyzed . "\n";   #New line
     }
-
-
-
-#   #   
-#   #   foreach (0 .. $#headersSep) {
-#   #       print $outputFile_fh "$headersSep[$_]\t";
-#   #       #print "$headersSep[$_]\t";
-#   #   }
-    
 }
 
-
-#   #   #   #   #   #   #   #
-#   #   
-#   #   print $outputFile_fh "\n";
-#   #   my $data_1 = "$fileName\t$chr\t$xf1\t$xf2\t$chr_state\t$numSelectedDivSites\t$numSelectedDiff\t$numNeutralDivSites\t$numNeutralDiff\t$numAnalyzed\t";
-#   #   print $outputFile_fh $data_1;
-#   #   #print $data_1;
-#   #   
-#   #   foreach (0 .. $#paramEstimatesSep) {
-#   #       if ($_ != $#paramEstimatesSep) {
-#   #           print $outputFile_fh "$paramEstimatesSep[$_]\t";
-#   #           #print "$paramEstimatesSep[$_]\t";
-#   #       } elsif ($_ == $#paramEstimatesSep) {
-#   #           print $outputFile_fh "$paramEstimatesSep[$_]";
-#   #           #print "$paramEstimatesSep[$_]";
-#   #       }
-#   #   }
-#   #   
-#   #   #print $outputFile_fh "\n";
