@@ -165,7 +165,8 @@ sub getDatasetIndexes {
     my $numDatasets = shift;
     my @file = @{ $file_aref };
     # For every dataset
-    for (my $datasetNumber = 1; $datasetNumber <= $numDatasets; $datasetNumber++) {
+    #for (my $datasetNumber = 1; $datasetNumber <= $numDatasets; $datasetNumber++) {
+    for (my $datasetNumber = 1; $datasetNumber = $numDatasets; $datasetNumber++) {
         my $datasetIndex = first_index { /Data set $datasetNumber/ } @file;   # Save first line matching our dataset
         parseIndividualDataset($file_aref, $datasetNumber, $datasetIndex);  #Call another sub (which will parse the data) with the $datasetIndex, and let the sub do the magic.
     }
@@ -225,7 +226,7 @@ sub relateWithOriginalDataset {
     my @listOfObjects = @{ $listOfObjects_aref };
     my ( $parentFilenameFromObject, $chromStateIndex, $chromStateObject );
 
-    # # # Y si abro el input, solo lo que interesa (match chromState) (ver integrator david)
+    # # # Y si abro el input, solo lo que interesa (match chromState)?? (ver integrator david)
 
     while (my $line = <$indexFile_fh>) {
         chomp $line;
@@ -242,9 +243,10 @@ sub relateWithOriginalDataset {
                     /x
                 ) and (
                     $line =~ /
-                    \b  #Word boundary
-                    $datasetNumberObject
-                    \b
+                    #\b  #Word boundary
+                    #$datasetNumberObject
+                    #\b
+                    $chromStateObject\t$datasetNumberObject\t
                     /x
                 )
                )
