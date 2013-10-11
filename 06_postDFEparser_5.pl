@@ -1,4 +1,4 @@
-#! /usr/bin/env perl
+#! iusr/bin/env perl
 
 # # # Preamble
 use strict; use warnings; use feature 'say'; use Getopt::Long; use Data::Dumper;
@@ -45,7 +45,8 @@ getDatasetIndexes($file_aref, $numDatasets);
 
 relateWithOriginalDataset($indexFile_fh, $listOfObjects_aref);
 
-writeOutput($outputFile_fh, $listOfObjects_aref);
+#writeOutput($outputFile_fh, $listOfObjects_aref);
+writeOutput($outputFile_fh);
 
 
 # # # Subroutines
@@ -165,8 +166,8 @@ sub getDatasetIndexes {
     my $numDatasets = shift;
     my @file = @{ $file_aref };
     # For every dataset
-    #for (my $datasetNumber = 1; $datasetNumber <= $numDatasets; $datasetNumber++) {
-    for (my $datasetNumber = 1; $datasetNumber = $numDatasets; $datasetNumber++) {
+    for (my $datasetNumber = 1; $datasetNumber <= $numDatasets; $datasetNumber++) {
+    #for (my $datasetNumber = 1; $datasetNumber == $numDatasets; $datasetNumber++) {
         my $datasetIndex = first_index { /Data set $datasetNumber/ } @file;   # Save first line matching our dataset
         parseIndividualDataset($file_aref, $datasetNumber, $datasetIndex);  #Call another sub (which will parse the data) with the $datasetIndex, and let the sub do the magic.
     }
@@ -271,8 +272,9 @@ sub relateWithOriginalDataset {
 }
 
 sub writeOutput {
-    my ($outputFile_fh, $listOfObjects_aref) = @_;
-    my @listOfObjects = @{ $listOfObjects_aref };
+    #my ($outputFile_fh, $listOfObjects_aref) = @_;
+    #my @listOfObjects = @{ $listOfObjects_aref };
+    my $outputFile_fh = shift;
 
     # Print header
     my $header_1 = "parentFileName\tchr\tchr_state\tparentWinStart\tparentWinEnd\tdatasetNumber\tdatasetWinStart\tdatasetWinEnd\tnumSelectedDivSites\tnumSelectedDiff\tnumNeutralDivSites\tnumNeutralDiff";
