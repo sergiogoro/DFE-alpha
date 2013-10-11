@@ -1,4 +1,4 @@
-#! iusr/bin/env perl
+#! usr/bin/env perl
 
 # # # Preamble
 use strict; use warnings; use feature 'say'; use Getopt::Long; use Data::Dumper;
