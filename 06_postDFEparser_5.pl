@@ -132,12 +132,7 @@ sub parseParamEstimates {
     my $file_aref = shift;
     my @listOfObjects = @{ $listOfObjects_aref };
     my @file = @{ $file_aref };
-    #my %hash;
-    #my @paramsSep;
-    #for (my $i=6; $i <= 6+$numDatasets; $i++ ) { #Param estimates are lines from [6] to [6 + $numdatasets]
     for (my $i=6; $i < 6+$numDatasets; $i++ ) { #Param estimates are lines from [6] to [6 + $numdatasets]
-        #say "SAY \$i <$i>";
-        #say "SAY \$FILE[\$i] <$file[$i]>"; # Checking ...
     # Option A: store into array paramEstimates_arr
         push @{ $listOfObjects[$i-6]->paramEstimates_arr }, $file[$i];
     # Option B: store into hash paramEstimates_hash
@@ -145,7 +140,6 @@ sub parseParamEstimates {
         my %hash = ();
         my @paramsSep = ();
         push @paramsSep, (split " ", $file[$i]);
-        #foreach (@paramsSep) { say "Checking paramsSep <$_>" } # Checking ...
         %hash = (
             'N1' => $paramsSep[0],
             'N2' => $paramsSep[1],
@@ -163,9 +157,6 @@ sub parseParamEstimates {
             'proporMutants_range100_inf' =>  $paramsSep[13],
         );
         $listOfObjects[$i-6]->paramEstimates_hash( \%hash  );
-        #say "Checking HASH, printing omega_a";
-        #say $listOfObjects[$i-6]->paramEstimates_hash->{omega_a};
-        #say "\$paramsSep[8] <$paramsSep[8]>";
     }
     return 1;
 }
@@ -176,7 +167,6 @@ sub getDatasetIndexes {
     my @file = @{ $file_aref };
     # For every dataset
     for (my $datasetNumber = 1; $datasetNumber <= $numDatasets; $datasetNumber++) {
-    #for (my $datasetNumber = 1; $datasetNumber == $numDatasets; $datasetNumber++) {
         my $datasetIndex = first_index { /Data set $datasetNumber/ } @file;   # Save first line matching our dataset
         parseIndividualDataset($file_aref, $datasetNumber, $datasetIndex);  #Call another sub (which will parse the data) with the $datasetIndex, and let the sub do the magic.
     }
