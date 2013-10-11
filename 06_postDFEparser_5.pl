@@ -265,8 +265,8 @@ sub writeOutput {
     my @listOfObjects = @{ $listOfObjects_aref };
 
     # Print header
-    my $header_1 = "parentFilename\tchr\tchr_state\tparentWinStart\tparentWinEnd\tdatasetNumber\tdatasetWinStart\tdatasetWinEnd\tnumSelectedDivSites\tnumSelectedDiff\tnumNeutralDivSites\tnumNeutralDiff";
-    say $outputFile_fh $header_1;
+    my $header_1 = "parentFilename\tchr\tchr_state\tparentWinStart\tparentWinEnd\tdatasetNumber\tdatasetWinStart\tdatasetWinEnd\tnumSelectedDivSites\tnumSelectedDiff\tnumNeutralDivSites\tnumNeutralDiff\tN1\tN2\tt2\tf0\tbeta\tE(s)\t-N*E(s)\talpha\tomega_a\tlogL\tproporMutants_range0_1\tproporMutants_range1_10\tproporMutants_range10_100\tproporMutants_range100_inf\n";
+    print $outputFile_fh $header_1;
     foreach (@listOfObjects) {
         print $outputFile_fh $_->parentFilename . "\t";
         print $outputFile_fh $_->chromosome . "\t";
@@ -281,27 +281,24 @@ sub writeOutput {
         print $outputFile_fh $_->numSelectedDivSites . "\t";
         print $outputFile_fh $_->numSelectedDiff . "\t";
         print $outputFile_fh $_->numNeutralDivSites . "\t";
-        print $outputFile_fh $_->numNeutralDiff . "\n";    #New line
+        print $outputFile_fh $_->numNeutralDiff . "\t";    #New line
         #print $outputFile_fh $_->numAnalyzed . "\n";   #New line
-        
-        #while (my ($key, $value)
-        #foreach my $value (sort values %hash
-        #$listOfObjects->paramEstimates_hash
 
-        foreach my $object (@listOfObjects) {
-            say "-"x10;
-            say $object->parentFilename;
-            say $object->datasetNumber;
-            while ( my ($key, $value) = each %{ $object->paramEstimates_hash } ) {
-                say "\$key <$key>\t\$value<$value>";
-            }
-
-            #foreach my $value ( sort (values %{ $object->paramEstimates_hash }) ) {
-            #    say "\$value hash <$value>";
-            #}
-            say "-"x30;
-        }
-
+        print $outputFile_fh $_->paramEstimates_hash->{N1} . "\t";
+        print $outputFile_fh $_->paramEstimates_hash->{N2} . "\t";
+        print $outputFile_fh $_->paramEstimates_hash->{t2} . "\t";
+        print $outputFile_fh $_->paramEstimates_hash->{f0} . "\t";
+        print $outputFile_fh $_->paramEstimates_hash->{beta} . "\t";
+        print $outputFile_fh $_->paramEstimates_hash->{'E(s)'} . "\t";
+        print $outputFile_fh $_->paramEstimates_hash->{'-N*E(s)'} . "\t";
+        print $outputFile_fh $_->paramEstimates_hash->{'alpha'} . "\t";
+        print $outputFile_fh $_->paramEstimates_hash->{'omega_a'} . "\t";
+        print $outputFile_fh $_->paramEstimates_hash->{'logL'} . "\t";
+        print $outputFile_fh $_->paramEstimates_hash->{'proporMutants_range0_1'} . "\t";
+        print $outputFile_fh $_->paramEstimates_hash->{'proporMutants_range1_10'} . "\t";
+        print $outputFile_fh $_->paramEstimates_hash->{'proporMutants_range10_100'} . "\t";
+        print $outputFile_fh $_->paramEstimates_hash->{'proporMutants_range100_inf'} . "\t";
+        print $outputFile_fh "\n";
 
 
     }
