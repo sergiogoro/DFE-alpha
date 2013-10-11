@@ -45,7 +45,7 @@ getDatasetIndexes($file_aref, $numDatasets);
 
 relateWithOriginalDataset($indexFile_fh, $listOfObjects_aref);
 
-writeOutput($outputFile_fh);
+writeOutput($outputFile_fh, $listOfObjects_aref);
 
 
 # # # Subroutines
@@ -271,7 +271,8 @@ sub relateWithOriginalDataset {
 }
 
 sub writeOutput {
-    my $outputFile_fh = shift;
+    my ($outputFile_fh, $listOfObjects_aref) = @_;
+    my @listOfObjects = @{ $listOfObjects_aref };
 
     # Print header
     my $header_1 = "parentFileName\tchr\tchr_state\tparentWinStart\tparentWinEnd\tdatasetNumber\tdatasetWinStart\tdatasetWinEnd\tnumSelectedDivSites\tnumSelectedDiff\tnumNeutralDivSites\tnumNeutralDiff";
@@ -284,14 +285,27 @@ sub writeOutput {
         print $outputFile_fh $_->parentWinEnd . "\t";
         print $outputFile_fh $_->datasetNumber . "\t";
 
-        print $outputFile_fh $_->datasetStart . "\t";
-        print $outputFile_fh $_->datasetEnd . "\t";
+        print $outputFile_fh $_->datasetStart . "\t";       # Ojo +20
+        print $outputFile_fh $_->datasetEnd . "\t";         # Ojo +20
 
         print $outputFile_fh $_->numSelectedDivSites . "\t";
         print $outputFile_fh $_->numSelectedDiff . "\t";
         print $outputFile_fh $_->numNeutralDivSites . "\t";
         print $outputFile_fh $_->numNeutralDiff . "\n";    #New line
         #print $outputFile_fh $_->numAnalyzed . "\n";   #New line
+        
+        #while (my ($key, $value)
+        #foreach my $value (sort values %hash
+        #$listOfObjects->paramEstimates_hash
+
+        #foreach my $object (@listOfObjects) {
+        #    foreach my $value ( sort (values %{ $object->paramEstimates_hash }) ) {
+        #        say "\$value hash <$value>";
+        #    }
+        #}
+
+
+
     }
 }
 
