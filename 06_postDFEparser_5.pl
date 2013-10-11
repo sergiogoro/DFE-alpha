@@ -45,8 +45,8 @@ getDatasetIndexes($file_aref, $numDatasets);
 
 relateWithOriginalDataset($indexFile_fh, $listOfObjects_aref);
 
-#writeOutput($outputFile_fh, $listOfObjects_aref);
-writeOutput($outputFile_fh);
+writeOutput($outputFile_fh, $listOfObjects_aref);
+#writeOutput($outputFile_fh);
 
 
 # # # Subroutines
@@ -132,14 +132,20 @@ sub parseParamEstimates {
     my $file_aref = shift;
     my @listOfObjects = @{ $listOfObjects_aref };
     my @file = @{ $file_aref };
-    my %hash;
-    my @paramsSep;
+    #my %hash;
+    #my @paramsSep;
+    #for (my $i=6; $i <= 6+$numDatasets; $i++ ) { #Param estimates are lines from [6] to [6 + $numdatasets]
     for (my $i=6; $i < 6+$numDatasets; $i++ ) { #Param estimates are lines from [6] to [6 + $numdatasets]
+        #say "SAY \$i <$i>";
+        #say "SAY \$FILE[\$i] <$file[$i]>"; # Checking ...
     # Option A: store into array paramEstimates_arr
         push @{ $listOfObjects[$i-6]->paramEstimates_arr }, $file[$i];
     # Option B: store into hash paramEstimates_hash
         #Below, trying with hash, to store ALL paramEstimates into a hash (that way it'll be easier to retrieve values by their key)
-        push @paramsSep, (split " ", $file[$i]); 
+        my %hash = ();
+        my @paramsSep = ();
+        push @paramsSep, (split " ", $file[$i]);
+        #foreach (@paramsSep) { say "Checking paramsSep <$_>" } # Checking ...
         %hash = (
             'N1' => $paramsSep[0],
             'N2' => $paramsSep[1],
@@ -157,6 +163,9 @@ sub parseParamEstimates {
             'proporMutants_range100_inf' =>  $paramsSep[13],
         );
         $listOfObjects[$i-6]->paramEstimates_hash( \%hash  );
+        #say "Checking HASH, printing omega_a";
+        #say $listOfObjects[$i-6]->paramEstimates_hash->{omega_a};
+        #say "\$paramsSep[8] <$paramsSep[8]>";
     }
     return 1;
 }
@@ -237,19 +246,9 @@ sub relateWithOriginalDataset {
             my $datasetNumberObject = $object->datasetNumber;
             my ($chromStateObject) = $object->parentFilename =~ /(\w\w?_\w)/;
             if (
-                (
-                    $line =~ /
-                    $chromStateObject
-                    .*
-                    /x
-                ) and (
-                    $line =~ /
-                    #\b  #Word boundary
-                    #$datasetNumberObject
-                    #\b
-                    $chromStateObject\t$datasetNumberObject\t
-                    /x
-                )
+                $line =~ /
+                $chromStateObject\t$datasetNumberObject\t
+                /x
                )
             {
                 my @temp = split " ", $line;
@@ -272,12 +271,11 @@ sub relateWithOriginalDataset {
 }
 
 sub writeOutput {
-    #my ($outputFile_fh, $listOfObjects_aref) = @_;
-    #my @listOfObjects = @{ $listOfObjects_aref };
-    my $outputFile_fh = shift;
+    my ($outputFile_fh, $listOfObjects_aref) = @_;
+    my @listOfObjects = @{ $listOfObjects_aref };
 
     # Print header
-    my $header_1 = "parentFileName\tchr\tchr_state\tparentWinStart\tparentWinEnd\tdatasetNumber\tdatasetWinStart\tdatasetWinEnd\tnumSelectedDivSites\tnumSelectedDiff\tnumNeutralDivSites\tnumNeutralDiff";
+    my $header_1 = "parentFilename\tchr\tchr_state\tparentWinStart\tparentWinEnd\tdatasetNumber\tdatasetWinStart\tdatasetWinEnd\tnumSelectedDivSites\tnumSelectedDiff\tnumNeutralDivSites\tnumNeutralDiff";
     say $outputFile_fh $header_1;
     foreach (@listOfObjects) {
         print $outputFile_fh $_->parentFilename . "\t";
@@ -300,11 +298,19 @@ sub writeOutput {
         #foreach my $value (sort values %hash
         #$listOfObjects->paramEstimates_hash
 
-        #foreach my $object (@listOfObjects) {
-        #    foreach my $value ( sort (values %{ $object->paramEstimates_hash }) ) {
-        #        say "\$value hash <$value>";
-        #    }
-        #}
+        foreach my $object (@listOfObjects) {
+            say "-"x10;
+            say $object->parentFilename;
+            say $object->datasetNumber;
+            while ( my ($key, $value) = each %{ $object->paramEstimates_hash } ) {
+                say "\$key <$key>\t\$value<$value>";
+            }
+
+            #foreach my $value ( sort (values %{ $object->paramEstimates_hash }) ) {
+            #    say "\$value hash <$value>";
+            #}
+            say "-"x30;
+        }
 
 
 
