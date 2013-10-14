@@ -297,7 +297,7 @@ sub writeOutput {
         print $outputFile_fh $_->paramEstimates_hash->{'proporMutants_range0_1'} . "\t";
         print $outputFile_fh $_->paramEstimates_hash->{'proporMutants_range1_10'} . "\t";
         print $outputFile_fh $_->paramEstimates_hash->{'proporMutants_range10_100'} . "\t";
-        print $outputFile_fh $_->paramEstimates_hash->{'proporMutants_range100_inf'} . "\t";
+        print $outputFile_fh $_->paramEstimates_hash->{'proporMutants_range100_inf'};
         print $outputFile_fh "\n";
 
 
